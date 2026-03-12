@@ -1,0 +1,1883 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>2D SLAM Manager</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_main">
+    <item>
+     <!-- Common Options -->
+     <widget class="QGroupBox" name="groupCommon">
+      <property name="title">
+       <string>Common Options</string>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_common">
+       <item>
+        <widget class="QCheckBox" name="chkUseSimTime">
+         <property name="text">
+          <string>use_sim_time</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkRviz">
+         <property name="text">
+          <string>Launch RViz</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_common">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnStopAll">
+         <property name="text">
+          <string>Stop All</string>
+         </property>
+         <property name="styleSheet">
+          <string>background-color: #f44336; color: white; font-weight: bold; padding: 8px 16px;</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <!-- Tab Widget -->
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <!-- Data Source Tab -->
+      <widget class="QWidget" name="tabDataSource">
+       <attribute name="title">
+        <string>Data Source</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_datasource">
+        <!-- Livox Group -->
+        <item>
+         <widget class="QGroupBox" name="groupLivox">
+          <property name="title">
+           <string>Livox LiDAR</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_livox">
+           <item>
+            <widget class="QPushButton" name="btnStartLivox">
+             <property name="text">
+              <string>Start Livox</string>
+             </property>
+             <property name="styleSheet">
+              <string>background-color: #4CAF50; color: white; font-weight: bold; padding: 10px;</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnStopLivox">
+             <property name="text">
+              <string>Stop Livox</string>
+             </property>
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="styleSheet">
+              <string>padding: 10px;</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblLivoxStatus">
+             <property name="text">
+              <string>Status: Stopped</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_livox">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <!-- ROS Bag Group -->
+        <item>
+         <widget class="QGroupBox" name="groupBag">
+          <property name="title">
+           <string>ROS Bag Playback</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_bag">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_bagfile">
+             <item>
+              <widget class="QLabel" name="lblBagFile">
+               <property name="text">
+                <string>Bag File:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="txtBagFile">
+               <property name="placeholderText">
+                <string>Select ROS bag file...</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnBrowseBag">
+               <property name="text">
+                <string>Browse...</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_bagoptions">
+             <item>
+              <widget class="QCheckBox" name="chkBagLoop">
+               <property name="text">
+                <string>Loop</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="chkBagClock">
+               <property name="text">
+                <string>Publish Clock</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="lblBagRate">
+               <property name="text">
+                <string>Rate:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="spinBagRate">
+               <property name="minimum">
+                <double>0.100000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>10.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.100000000000000</double>
+               </property>
+               <property name="value">
+                <double>1.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_bagoptions">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_bagcontrols">
+             <item>
+              <widget class="QPushButton" name="btnPlayBag">
+               <property name="text">
+                <string>Play</string>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: #4CAF50; color: white; font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnPauseBag">
+               <property name="text">
+                <string>Pause</string>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string>padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStopBag">
+               <property name="text">
+                <string>Stop</string>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string>padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QProgressBar" name="progressBag">
+               <property name="value">
+                <number>0</number>
+               </property>
+               <property name="format">
+                <string>%p% - 00:00 / 00:00</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_datasource">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+      <!-- SLAM Toolbox Tab -->
+      <widget class="QWidget" name="tabSlamToolbox">
+       <attribute name="title">
+        <string>SLAM Toolbox</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_slamtoolbox">
+        <!-- Sensor Topics Group -->
+        <item>
+         <widget class="QGroupBox" name="groupSlamToolboxTopics">
+          <property name="title">
+           <string>Sensor Topics</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_slamtoolbox_topics_group">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_slamtoolbox_topics">
+             <item>
+              <widget class="QLabel" name="lblSlamToolboxLidarTopic">
+               <property name="text">
+                <string>LiDAR Topic:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="cmbSlamToolboxLidarTopic">
+               <property name="minimumSize">
+                <size>
+                 <width>150</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="editable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="lblSlamToolboxImuTopic">
+               <property name="text">
+                <string>IMU Topic:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="cmbSlamToolboxImuTopic">
+               <property name="minimumSize">
+                <size>
+                 <width>150</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="editable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnRefreshSlamToolboxTopics">
+               <property name="text">
+                <string>Refresh</string>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>80</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_slamtoolbox_topics">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <!-- Mapping Group -->
+        <item>
+         <widget class="QGroupBox" name="groupSlamToolboxMapping">
+          <property name="title">
+           <string>Mapping Mode</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_slamtoolbox_mapping">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_slamtoolbox_mapping">
+             <item>
+              <widget class="QPushButton" name="btnStartSlamToolboxMapping">
+               <property name="text">
+                <string>Start Mapping</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: #4CAF50; color: white; font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStopSlamToolboxMapping">
+               <property name="text">
+                <string>Stop Mapping</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string>font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnSaveSlamToolboxMap">
+               <property name="text">
+                <string>Save Map</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: #FF9800; color: white; font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_slamtoolbox_mapping">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <!-- Localization Group -->
+        <item>
+         <widget class="QGroupBox" name="groupSlamToolboxLoc">
+          <property name="title">
+           <string>Localization Mode</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_slamtoolbox_loc">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_slamtoolbox_mappath">
+             <item>
+              <widget class="QLabel" name="lblSlamToolboxMapPath">
+               <property name="text">
+                <string>Map File (.posegraph):</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="txtSlamToolboxMapPath">
+               <property name="placeholderText">
+                <string>Select posegraph file...</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnBrowseSlamToolboxMap">
+               <property name="text">
+                <string>Browse...</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_slamtoolbox_loc">
+             <item>
+              <widget class="QPushButton" name="btnStartSlamToolboxLoc">
+               <property name="text">
+                <string>Start Localization</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: #2196F3; color: white; font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStopSlamToolboxLoc">
+               <property name="text">
+                <string>Stop Localization</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string>font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_slamtoolbox_loc">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <!-- Position Display -->
+        <item>
+         <widget class="QGroupBox" name="groupSlamToolboxPos">
+          <property name="title">
+           <string>Current Position</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_slamtoolbox_pos">
+           <item>
+            <widget class="QLabel" name="lblSlamToolboxPosX">
+             <property name="text">
+              <string>X: 0.000</string>
+             </property>
+             <property name="font">
+              <font>
+               <family>Monospace</family>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblSlamToolboxPosY">
+             <property name="text">
+              <string>Y: 0.000</string>
+             </property>
+             <property name="font">
+              <font>
+               <family>Monospace</family>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblSlamToolboxPosYaw">
+             <property name="text">
+              <string>Yaw: 0.0°</string>
+             </property>
+             <property name="font">
+              <font>
+               <family>Monospace</family>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_slamtoolbox_pos">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_slamtoolbox">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+      <!-- Cartographer Tab -->
+      <widget class="QWidget" name="tabCartographer">
+       <attribute name="title">
+        <string>Cartographer</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_carto">
+        <!-- Sensor Topics Group -->
+        <item>
+         <widget class="QGroupBox" name="groupCartoTopics">
+          <property name="title">
+           <string>Sensor Topics</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_carto_topics_group">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_carto_topics">
+             <item>
+              <widget class="QLabel" name="lblCartoLidarTopic">
+               <property name="text">
+                <string>LiDAR Topic:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="cmbCartoLidarTopic">
+               <property name="minimumSize">
+                <size>
+                 <width>150</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="editable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="lblCartoImuTopic">
+               <property name="text">
+                <string>IMU Topic:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="cmbCartoImuTopic">
+               <property name="minimumSize">
+                <size>
+                 <width>150</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="editable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnRefreshCartoTopics">
+               <property name="text">
+                <string>Refresh</string>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>80</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_carto_topics">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <!-- Mapping Group -->
+        <item>
+         <widget class="QGroupBox" name="groupCartoMapping">
+          <property name="title">
+           <string>Mapping Mode</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_carto_mapping">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_carto_mapping">
+             <item>
+              <widget class="QPushButton" name="btnStartCartoMapping">
+               <property name="text">
+                <string>Start Mapping</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: #4CAF50; color: white; font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStopCartoMapping">
+               <property name="text">
+                <string>Stop Mapping</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string>font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnSaveCartoMap">
+               <property name="text">
+                <string>Save Map</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: #FF9800; color: white; font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_carto_mapping">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <!-- Localization Group -->
+        <item>
+         <widget class="QGroupBox" name="groupCartoLoc">
+          <property name="title">
+           <string>Localization Mode</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_carto_loc">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_carto_mappath">
+             <item>
+              <widget class="QLabel" name="lblCartoMapPath">
+               <property name="text">
+                <string>Map File (.pbstream):</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="txtCartoMapPath">
+               <property name="placeholderText">
+                <string>Select pbstream file...</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnBrowseCartoMap">
+               <property name="text">
+                <string>Browse...</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_carto_loc">
+             <item>
+              <widget class="QPushButton" name="btnStartCartoLoc">
+               <property name="text">
+                <string>Start Localization</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: #2196F3; color: white; font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStopCartoLoc">
+               <property name="text">
+                <string>Stop Localization</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string>font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_carto_loc">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <!-- Position Display -->
+        <item>
+         <widget class="QGroupBox" name="groupCartoPos">
+          <property name="title">
+           <string>Current Position</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_carto_pos">
+           <item>
+            <widget class="QLabel" name="lblCartoPosX">
+             <property name="text">
+              <string>X: 0.000</string>
+             </property>
+             <property name="font">
+              <font>
+               <family>Monospace</family>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblCartoPosY">
+             <property name="text">
+              <string>Y: 0.000</string>
+             </property>
+             <property name="font">
+              <font>
+               <family>Monospace</family>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblCartoPosYaw">
+             <property name="text">
+              <string>Yaw: 0.0°</string>
+             </property>
+             <property name="font">
+              <font>
+               <family>Monospace</family>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_carto_pos">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <!-- Not Configured Warning -->
+        <item>
+         <widget class="QLabel" name="lblCartoNotConfigured">
+          <property name="text">
+           <string>* Cartographer launch files not configured yet</string>
+          </property>
+          <property name="styleSheet">
+           <string>color: #FF5722; font-style: italic;</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_carto">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+      <!-- K-SLAM Tab -->
+      <widget class="QWidget" name="tabKSlam">
+       <attribute name="title">
+        <string>K-SLAM</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_kslam">
+        <!-- Sensor Topics Group -->
+        <item>
+         <widget class="QGroupBox" name="groupKSlamTopics">
+          <property name="title">
+           <string>Sensor Topics</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_kslam_topics_group">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_kslam_topics">
+             <item>
+              <widget class="QLabel" name="lblKSlamLidarTopic">
+               <property name="text">
+                <string>LiDAR Topic:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="cmbKSlamLidarTopic">
+               <property name="minimumSize">
+                <size>
+                 <width>150</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="editable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnRefreshKSlamTopics">
+               <property name="text">
+                <string>Refresh</string>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>80</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_kslam_topics">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <!-- Mapping Group -->
+        <item>
+         <widget class="QGroupBox" name="groupKSlamMapping">
+          <property name="title">
+           <string>Mapping Mode</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_kslam_mapping">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_kslam_mapping">
+             <item>
+              <widget class="QPushButton" name="btnStartKSlam">
+               <property name="text">
+                <string>Start Mapping</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: #4CAF50; color: white; font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStopKSlam">
+               <property name="text">
+                <string>Stop Mapping</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string>font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnSaveKSlamMap">
+               <property name="text">
+                <string>Save Map</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: #FF9800; color: white; font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_kslam_mapping">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <!-- Position Display -->
+        <item>
+         <widget class="QGroupBox" name="groupKSlamPos">
+          <property name="title">
+           <string>Current Position</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_kslam_pos">
+           <item>
+            <widget class="QLabel" name="lblKSlamPosX">
+             <property name="text">
+              <string>X: 0.000</string>
+             </property>
+             <property name="font">
+              <font>
+               <family>Monospace</family>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblKSlamPosY">
+             <property name="text">
+              <string>Y: 0.000</string>
+             </property>
+             <property name="font">
+              <font>
+               <family>Monospace</family>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblKSlamPosYaw">
+             <property name="text">
+              <string>Yaw: 0.0°</string>
+             </property>
+             <property name="font">
+              <font>
+               <family>Monospace</family>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_kslam_pos">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_kslam">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+      <!-- RTAB-Map 2D Tab -->
+      <widget class="QWidget" name="tabRtabmap2D">
+       <attribute name="title">
+        <string>RTAB-Map 2D</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_rtabmap2d">
+        <!-- Sensor Topics Group -->
+        <item>
+         <widget class="QGroupBox" name="groupRtabmap2DTopics">
+          <property name="title">
+           <string>Sensor Topics</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_rtabmap2d_topics_group">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_rtabmap2d_topics">
+             <item>
+              <widget class="QLabel" name="lblRtabmap2DLidarTopic">
+               <property name="text">
+                <string>LiDAR Topic:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="cmbRtabmap2DLidarTopic">
+               <property name="minimumSize">
+                <size>
+                 <width>150</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="editable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="lblRtabmap2DImuTopic">
+               <property name="text">
+                <string>IMU Topic:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="cmbRtabmap2DImuTopic">
+               <property name="minimumSize">
+                <size>
+                 <width>150</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="editable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnRefreshRtabmap2DTopics">
+               <property name="text">
+                <string>Refresh</string>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>80</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_rtabmap2d_topics">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <!-- Mapping Group -->
+        <item>
+         <widget class="QGroupBox" name="groupRtabmap2DMapping">
+          <property name="title">
+           <string>Mapping Mode</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_rtabmap2d_mapping">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_rtabmap2d_mapping">
+             <item>
+              <widget class="QPushButton" name="btnStartRtabmap2DMapping">
+               <property name="text">
+                <string>Start Mapping</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: #4CAF50; color: white; font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStopRtabmap2DMapping">
+               <property name="text">
+                <string>Stop Mapping</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string>font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnSaveRtabmap2DMap">
+               <property name="text">
+                <string>Save Map</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: #FF9800; color: white; font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_rtabmap2d_mapping">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <!-- Localization Group -->
+        <item>
+         <widget class="QGroupBox" name="groupRtabmap2DLoc">
+          <property name="title">
+           <string>Localization Mode</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_rtabmap2d_loc">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_rtabmap2d_mappath">
+             <item>
+              <widget class="QLabel" name="lblRtabmap2DMapPath">
+               <property name="text">
+                <string>Map File (.db):</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="txtRtabmap2DMapPath">
+               <property name="placeholderText">
+                <string>Select database file...</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnBrowseRtabmap2DMap">
+               <property name="text">
+                <string>Browse...</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_rtabmap2d_loc">
+             <item>
+              <widget class="QPushButton" name="btnStartRtabmap2DLoc">
+               <property name="text">
+                <string>Start Localization</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: #2196F3; color: white; font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStopRtabmap2DLoc">
+               <property name="text">
+                <string>Stop Localization</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string>font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_rtabmap2d_loc">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <!-- Position Display -->
+        <item>
+         <widget class="QGroupBox" name="groupRtabmap2DPos">
+          <property name="title">
+           <string>Current Position</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_rtabmap2d_pos">
+           <item>
+            <widget class="QLabel" name="lblRtabmap2DPosX">
+             <property name="text">
+              <string>X: 0.000</string>
+             </property>
+             <property name="font">
+              <font>
+               <family>Monospace</family>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblRtabmap2DPosY">
+             <property name="text">
+              <string>Y: 0.000</string>
+             </property>
+             <property name="font">
+              <font>
+               <family>Monospace</family>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblRtabmap2DPosYaw">
+             <property name="text">
+              <string>Yaw: 0.0°</string>
+             </property>
+             <property name="font">
+              <font>
+               <family>Monospace</family>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_rtabmap2d_pos">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_rtabmap2d">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+      <!-- RTAB-Map 2D Camera Tab -->
+      <widget class="QWidget" name="tabRtabmap2DCamera">
+       <attribute name="title">
+        <string>RTAB-Map 2D Camera</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_rtabmap2d_camera">
+        <!-- Sensor Topics Group -->
+        <item>
+         <widget class="QGroupBox" name="groupRtabmap2DCameraTopics">
+          <property name="title">
+           <string>Sensor Topics</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_rtabmap2d_camera_topics_group">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_rtabmap2d_camera_topics">
+             <item>
+              <widget class="QLabel" name="lblRtabmap2DCameraLidarTopic">
+               <property name="text">
+                <string>LiDAR Topic:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="cmbRtabmap2DCameraLidarTopic">
+               <property name="minimumSize">
+                <size>
+                 <width>150</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="editable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="lblRtabmap2DCameraImuTopic">
+               <property name="text">
+                <string>IMU Topic:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="cmbRtabmap2DCameraImuTopic">
+               <property name="minimumSize">
+                <size>
+                 <width>150</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="editable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnRefreshRtabmap2DCameraTopics">
+               <property name="text">
+                <string>Refresh</string>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>80</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_rtabmap2d_camera_topics">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <!-- Mapping Group -->
+        <item>
+         <widget class="QGroupBox" name="groupRtabmap2DCameraMapping">
+          <property name="title">
+           <string>Mapping Mode (LiDAR + Camera)</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_rtabmap2d_camera_mapping">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_rtabmap2d_camera_mapping">
+             <item>
+              <widget class="QPushButton" name="btnStartRtabmap2DCameraMapping">
+               <property name="text">
+                <string>Start Mapping</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: #4CAF50; color: white; font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStopRtabmap2DCameraMapping">
+               <property name="text">
+                <string>Stop Mapping</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string>font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnSaveRtabmap2DCameraMap">
+               <property name="text">
+                <string>Save Map</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: #FF9800; color: white; font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_rtabmap2d_camera_mapping">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <!-- Localization Group -->
+        <item>
+         <widget class="QGroupBox" name="groupRtabmap2DCameraLoc">
+          <property name="title">
+           <string>Localization Mode (LiDAR + Camera)</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_rtabmap2d_camera_loc">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_rtabmap2d_camera_mappath">
+             <item>
+              <widget class="QLabel" name="lblRtabmap2DCameraMapPath">
+               <property name="text">
+                <string>Map File (.db):</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="txtRtabmap2DCameraMapPath">
+               <property name="placeholderText">
+                <string>Select database file...</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnBrowseRtabmap2DCameraMap">
+               <property name="text">
+                <string>Browse...</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_rtabmap2d_camera_loc">
+             <item>
+              <widget class="QPushButton" name="btnStartRtabmap2DCameraLoc">
+               <property name="text">
+                <string>Start Localization</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: #2196F3; color: white; font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStopRtabmap2DCameraLoc">
+               <property name="text">
+                <string>Stop Localization</string>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string>font-weight: bold; padding: 10px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_rtabmap2d_camera_loc">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <!-- Position Display -->
+        <item>
+         <widget class="QGroupBox" name="groupRtabmap2DCameraPos">
+          <property name="title">
+           <string>Current Position</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_rtabmap2d_camera_pos">
+           <item>
+            <widget class="QLabel" name="lblRtabmap2DCameraPosX">
+             <property name="text">
+              <string>X: 0.000</string>
+             </property>
+             <property name="font">
+              <font>
+               <family>Monospace</family>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblRtabmap2DCameraPosY">
+             <property name="text">
+              <string>Y: 0.000</string>
+             </property>
+             <property name="font">
+              <font>
+               <family>Monospace</family>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblRtabmap2DCameraPosYaw">
+             <property name="text">
+              <string>Yaw: 0.0°</string>
+             </property>
+             <property name="font">
+              <font>
+               <family>Monospace</family>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_rtabmap2d_camera_pos">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_rtabmap2d_camera">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+    <!-- Log Area -->
+    <item>
+     <widget class="QGroupBox" name="groupLog">
+      <property name="title">
+       <string>Log</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_log">
+       <item>
+        <widget class="QTextEdit" name="txtLog">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="maximumHeight">
+          <number>150</number>
+         </property>
+         <property name="font">
+          <font>
+           <family>Monospace</family>
+           <pointsize>9</pointsize>
+          </font>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

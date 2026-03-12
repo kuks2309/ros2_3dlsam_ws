@@ -1,0 +1,7 @@
+{
+  "tool_name": "mcp__claude_ai_Notion__notion-update-page",
+  "tool_input_preview": "{\"page_id\":\"321444fd39c681c1b744e83b10643d72\",\"command\":\"update_content\",\"content_updates\":[{\"old_str\":\"### Livox Mid-360 특징\\n- **360° 수평 FOV**, 비균일 스캔 패턴 (non-repetitive)\\n- 기존 LiDAR와 달리 회전 메커니즘 없음 (...",
+  "error": "{\"name\":\"APIResponseError\",\"code\":\"validation_error\",\"status\":400,\"headers\":{},\"body\":\"{\\\"object\\\":\\\"error\\\",\\\"status\\\":400,\\\"code\\\":\\\"validation_error\\\",\\\"message\\\":\\\"No matches found for ### Livox Mid-360 특징\\\\n- **360° 수평 FOV**, 비균일 스캔 패턴 (non-repetitive)\\\\n- 기존 LiDAR와 달리 회전 메커니즘 없음 (고내구성)\\\\n- ROS2 토픽: `/livox/lidar` (PointCloud2), `/livox/imu` (Imu)\\\\n- 연결: LAN 케이블 (IP: 192.168.1.1xx)\\\\n## 필요 토픽\\\\n| 토픽 | 타입 | 설명 |\\\\n|------|------|------|\\\\n| `/livox/lidar` | `sensor_msgs/PointCloud2` | 3D Li...",
+  "timestamp": "2026-03-12T20:03:30.989Z",
+  "retry_count": 1
+}

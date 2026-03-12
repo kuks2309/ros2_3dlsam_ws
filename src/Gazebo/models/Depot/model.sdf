@@ -1,0 +1,206 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+    <model name="Depot">
+        <static>1</static>
+        <link name="main">
+            <collision name="collision">
+                <pose>0 0 0 0 0 0</pose>
+                <geometry>
+                    <plane>
+                        <normal>0 0 1</normal>
+                        <size>100 100</size>
+                    </plane>
+                </geometry>
+            </collision>
+            <!-- ROOF visual removed -->
+            <visual name="WALLS_visual">
+                <geometry>
+                    <mesh>
+                        <scale>0.6 0.6 0.6</scale>
+                        <uri>meshes/Depot.dae</uri>
+                        <submesh>
+                            <name>WALLS</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <diffuse>1.0 1.0 1.0</diffuse>
+                    <specular>1.0 1.0 1.0</specular>
+                    <pbr>
+                        <metal>
+                            <albedo_map>materials/textures/WALLS_Albedo.png</albedo_map>
+                            <normal_map>materials/textures/WALLS_Normal.png</normal_map>
+                            <metalness_map>materials/textures/WALLS_Metalness.png</metalness_map>
+                            <roughness_map>materials/textures/WALLS_Roughness.png</roughness_map>
+                            <light_map uv_set="1">materials/textures/DepotLightmap.png</light_map>
+                        </metal>
+                    </pbr>
+                    <!-- fallback to script if no PBR support-->
+                    <script>
+                        <uri>materials/scripts/</uri>
+                        <uri>materials/textures/</uri>
+                        <name>UrbanTile/WALLS_Diffuse</name>
+                    </script>
+                </material>
+            </visual>
+            <visual name="WINDOW_visual">
+                <geometry>
+                    <mesh>
+                        <scale>0.6 0.6 0.6</scale>
+                        <uri>meshes/Depot.dae</uri>
+                        <submesh>
+                            <name>WINDOW</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <diffuse>1.0 1.0 1.0</diffuse>
+                    <specular>1.0 1.0 1.0</specular>
+                    <pbr>
+                        <metal>
+                            <albedo_map>materials/textures/Window_WINDOW_BaseColor.png</albedo_map>
+                            <metalness_map>materials/textures/Window_WINDOW_Metallic.png</metalness_map>
+                            <roughness_map>materials/textures/Window_WINDOW_Roughness.png</roughness_map>
+                        </metal>
+                    </pbr>
+                    <!-- fallback to script if no PBR support-->
+                    <script>
+                        <uri>materials/scripts/</uri>
+                        <uri>materials/textures/</uri>
+                        <name>UrbanTile/WINDOW_Diffuse</name>
+                    </script>
+                </material>
+            </visual>
+            <visual name="INTERCOM_visual">
+                <geometry>
+                    <mesh>
+                        <scale>0.6 0.6 0.6</scale>
+                        <uri>meshes/Depot.dae</uri>
+                        <submesh>
+                            <name>INTERCOM</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <diffuse>1.0 1.0 1.0</diffuse>
+                    <specular>1.0 1.0 1.0</specular>
+                    <pbr>
+                        <metal>
+                            <albedo_map>materials/textures/INTERCOM_Albedo.png</albedo_map>
+                            <normal_map>materials/textures/INTERCOM_Normal.png</normal_map>
+                            <metalness_map>materials/textures/INTERCOM_Metalness.png</metalness_map>
+                            <roughness_map>materials/textures/INTERCOM_Roughness.png</roughness_map>
+                            <emissive_map>materials/textures/INTERCOM_Emissive.png</emissive_map>
+                            <light_map uv_set="1">materials/textures/DepotLightmap.png</light_map>
+                        </metal>
+                    </pbr>
+                    <!-- fallback to script if no PBR support-->
+                    <script>
+                        <uri>materials/scripts/</uri>
+                        <uri>materials/textures/</uri>
+                        <name>UrbanTile/INTERCOM_Diffuse</name>
+                    </script>
+                </material>
+            </visual>
+            <visual name="FLOOR_visual">
+                <geometry>
+                    <mesh>
+                        <scale>0.6 0.6 0.6</scale>
+                        <uri>meshes/Depot.dae</uri>
+                        <submesh>
+                            <name>FLOOR</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <diffuse>1.0 1.0 1.0</diffuse>
+                    <specular>1.0 1.0 1.0</specular>
+                    <pbr>
+                        <metal>
+                            <albedo_map>materials/textures/FLOOR_Albedo.png</albedo_map>
+                            <normal_map>materials/textures/FLOOR_Normal.png</normal_map>
+                            <metalness_map>materials/textures/FLOOR_Metalness.png</metalness_map>
+                            <roughness_map>materials/textures/FLOOR_Roughness.png</roughness_map>
+                            <light_map uv_set="1">materials/textures/DepotLightmap.png</light_map>
+                        </metal>
+                    </pbr>
+                    <!-- fallback to script if no PBR support-->
+                    <script>
+                        <uri>materials/scripts/</uri>
+                        <uri>materials/textures/</uri>
+                        <name>UrbanTile/FLOOR_Diffuse</name>
+                    </script>
+                </material>
+            </visual>
+        </link>
+        <!-- Fan1, Fan2 links and joints removed -->
+
+        <link name="left_wall">
+            <pose>0 7.45 4.65 0 0 0</pose>
+            <collision name="wall_collision_left">
+                <geometry>
+                    <box>
+                        <size>30.36 0.2 9.30</size>
+                    </box>
+                </geometry>
+            </collision>
+
+        </link>
+        <link name="right_wall">
+            <pose>0 -7.65 4.65 0 0 0</pose>
+            <collision name="wall_collision_right">
+                <geometry>
+                    <box>
+                        <size>30.36 0.2 9.30</size>
+                    </box>
+                </geometry>
+            </collision>
+        </link>
+        <link name="front_wall">
+            <pose>15 0 4.65 0 0 1.5708</pose>
+            <collision name="wall_collision_front">
+                <geometry>
+                    <box>
+                        <size>15.2 0.2 9.30</size>
+                    </box>
+                </geometry>
+            </collision>
+        </link>
+        <link name="rear_wall">
+            <pose>-15 0 4.65 0 0 1.5708</pose>
+            <collision name="wall_collision_rear">
+                <geometry>
+                    <box>
+                        <size>15.2 0.2 9.30</size>
+                    </box>
+                </geometry>
+            </collision>
+        </link>
+
+        <joint name="world_joint_1" type="fixed">
+            <parent>world</parent>
+            <child>left_wall</child>
+        </joint>
+        <joint name="world_joint_2" type="fixed">
+            <parent>world</parent>
+            <child>right_wall</child>
+        </joint>
+        <joint name="world_joint_3" type="fixed">
+            <parent>world</parent>
+            <child>front_wall</child>
+        </joint>
+        <joint name="world_joint_4" type="fixed">
+            <parent>world</parent>
+            <child>rear_wall</child>
+        </joint>
+
+        <joint name="world_joint" type="fixed">
+            <parent>world</parent>
+            <child>main</child>
+        </joint>
+    </model>
+</sdf>

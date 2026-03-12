@@ -1,0 +1,6 @@
+[submodule "src/SLAM/2D_SLAM/rtab_map/rtabmap"]
+	path = src/SLAM/2D_SLAM/rtab_map/rtabmap
+	url = https://github.com/introlab/rtabmap.git
+[submodule "src/SLAM/2D_SLAM/rtab_map/rtabmap_ros"]
+	path = src/SLAM/2D_SLAM/rtab_map/rtabmap_ros
+	url = https://github.com/introlab/rtabmap_ros.git
