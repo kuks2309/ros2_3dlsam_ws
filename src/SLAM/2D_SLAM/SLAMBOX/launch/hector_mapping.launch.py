@@ -22,7 +22,7 @@ def generate_launch_description():
     )
 
     default_rviz_file = os.path.join(
-        pkg_src, 'rviz', 'hector_slam.rviz'
+        pkg_src, 'rviz2', 'hector_slam.rviz'
     )
 
     use_sim_time = LaunchConfiguration('use_sim_time')

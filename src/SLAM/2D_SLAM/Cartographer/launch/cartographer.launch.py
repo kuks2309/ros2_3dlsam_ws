@@ -15,7 +15,7 @@ def generate_launch_description():
     cartographer_config_dir = os.path.join(pkg_src, 'config')
     configuration_basename = 'cartographer.lua'
 
-    rviz_config_file = os.path.join(pkg_src, 'rviz', 'cartographer.rviz')
+    rviz_config_file = os.path.join(pkg_src, 'rviz2', 'cartographer.rviz')
 
     return LaunchDescription([
         DeclareLaunchArgument(

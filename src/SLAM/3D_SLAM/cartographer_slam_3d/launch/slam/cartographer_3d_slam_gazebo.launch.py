@@ -32,7 +32,7 @@ def generate_launch_description():
     )
     cartographer_config_dir = os.path.join(pkg_src, 'config')
     configuration_basename = 'cartographer_3d.lua'
-    rviz_config_file = os.path.join(pkg_src, 'rviz', 'cartographer_3d.rviz')
+    rviz_config_file = os.path.join(pkg_src, 'rviz2', 'cartographer_3d.rviz')
     accumulator_script = os.path.join(pkg_src, 'scripts', 'map_cloud_accumulator.py')
 
     use_sim_time = LaunchConfiguration('use_sim_time')

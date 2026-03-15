@@ -25,7 +25,7 @@ def generate_launch_description():
         pkg_src, 'config', 'mapper_params_localization.yaml'
     )
     default_rviz_file = os.path.join(
-        pkg_src, 'rviz', 'slam_toolbox.rviz'
+        pkg_src, 'rviz2', 'slam_toolbox.rviz'
     )
 
     use_sim_time = LaunchConfiguration('use_sim_time')

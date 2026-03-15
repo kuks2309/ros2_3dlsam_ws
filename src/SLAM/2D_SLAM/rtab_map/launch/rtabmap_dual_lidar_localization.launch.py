@@ -11,7 +11,7 @@ from ament_index_python.packages import get_package_share_directory
 def launch_setup(context, *args, **kwargs):
     # src 폴더 경로 사용 (CLAUDE.md 규칙)
     pkg_src = os.path.join(os.path.expanduser('~'), 'Study', 'ros2_3dslam_ws', 'src', 'SLAM', '2D_SLAM', 'rtab_map')
-    rviz_config = os.path.join(pkg_src, 'rviz', 'rtabmap_lidar.rviz')
+    rviz_config = os.path.join(pkg_src, 'rviz2', 'rtabmap_lidar.rviz')
     default_db_path = os.path.join(os.path.expanduser('~'), 'Study', 'ros2_3dslam_ws', 'maps', 'rtabmap_2d', 'rtabmap.db')
 
     calibration_file = os.path.join(

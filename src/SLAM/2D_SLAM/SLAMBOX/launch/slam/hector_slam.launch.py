@@ -19,7 +19,7 @@ def generate_launch_description():
     pkg_src = os.path.join(
         os.path.expanduser('~'), 'Study', 'ros2_3dslam_ws', 'src', 'SLAM', '2D_SLAM', 'SLAMBOX'
     )
-    default_rviz_file = os.path.join(pkg_src, 'rviz', 'hector_slam.rviz')
+    default_rviz_file = os.path.join(pkg_src, 'rviz2', 'hector_slam.rviz')
 
     use_sim_time = LaunchConfiguration('use_sim_time')
     rviz = LaunchConfiguration('rviz')

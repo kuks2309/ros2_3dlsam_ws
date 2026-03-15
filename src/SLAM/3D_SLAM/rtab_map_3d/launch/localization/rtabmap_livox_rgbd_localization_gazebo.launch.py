@@ -40,7 +40,7 @@ def generate_launch_description():
         'Study', 'ros2_3dslam_ws', 'src', 'SLAM', '3D_SLAM', 'rtab_map_3d'
     )
 
-    rviz_config = os.path.join(pkg_src, 'rviz', 'rtabmap_livox_rgbd_localization.rviz')
+    rviz_config = os.path.join(pkg_src, 'rviz2', 'rtabmap_livox_rgbd_localization.rviz')
 
     # Launch arguments
     rviz = LaunchConfiguration('rviz')

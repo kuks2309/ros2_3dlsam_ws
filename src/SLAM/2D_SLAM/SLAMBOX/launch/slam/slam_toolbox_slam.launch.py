@@ -20,7 +20,7 @@ def generate_launch_description():
         os.path.expanduser('~'), 'Study', 'ros2_3dslam_ws', 'src', 'SLAM', '2D_SLAM', 'SLAMBOX'
     )
     default_params_file = os.path.join(pkg_src, 'config', 'mapper_params_online_async.yaml')
-    default_rviz_file = os.path.join(pkg_src, 'rviz', 'slam_toolbox.rviz')
+    default_rviz_file = os.path.join(pkg_src, 'rviz2', 'slam_toolbox.rviz')
 
     use_sim_time = LaunchConfiguration('use_sim_time')
     params_file = LaunchConfiguration('params_file')

@@ -34,7 +34,7 @@ def generate_launch_description():
     pkg_share = get_package_share_directory('rtab_map_3d_config')
     astra_share = get_package_share_directory('astra_camera')
 
-    rviz_config = os.path.join(pkg_share, 'rviz', 'rtabmap_astra_3d_slam.rviz')
+    rviz_config = os.path.join(pkg_share, 'rviz2', 'rtabmap_astra_3d_slam.rviz')
     astra_launch = os.path.join(astra_share, 'launch', 'astra_pro.launch.xml')
 
     # Launch arguments

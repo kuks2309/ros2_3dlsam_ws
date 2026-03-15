@@ -29,7 +29,7 @@ def generate_launch_description():
         os.path.expanduser('~'),
         'Study', 'ros2_3dslam_ws', 'src', 'SLAM', '2D_SLAM', 'rtab_map'
     )
-    rviz_config = os.path.join(pkg_src, 'rviz', 'rtabmap_2d_lidar_rgbd.rviz')
+    rviz_config = os.path.join(pkg_src, 'rviz2', 'rtabmap_2d_lidar_rgbd.rviz')
 
     use_sim_time = LaunchConfiguration('use_sim_time')
     scan_topic = LaunchConfiguration('scan_topic')

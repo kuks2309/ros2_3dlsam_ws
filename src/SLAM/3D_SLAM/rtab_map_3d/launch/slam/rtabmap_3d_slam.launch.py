@@ -9,7 +9,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     # src 폴더 경로 사용 (CLAUDE.md 규칙)
     pkg_src = os.path.join(os.path.expanduser('~'), 'Study', 'ros2_3dslam_ws', 'src', 'SLAM', '3D_SLAM', 'rtab_map_3d')
-    rviz_config = os.path.join(pkg_src, 'rviz', 'rtabmap_3d.rviz')
+    rviz_config = os.path.join(pkg_src, 'rviz2', 'rtabmap_3d.rviz')
 
     # Launch arguments
     use_sim_time = LaunchConfiguration('use_sim_time')

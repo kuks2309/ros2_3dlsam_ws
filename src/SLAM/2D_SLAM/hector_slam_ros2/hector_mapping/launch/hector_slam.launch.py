@@ -19,7 +19,7 @@ def generate_launch_description():
     # src 폴더 경로 사용 (CLAUDE.md 규칙)
     rviz_config = os.path.join(
         os.path.expanduser('~'), 'Study', 'ros2_3dslam_ws', 'src', 'SLAM',
-        '2D_SLAM', 'hector_slam_ros2', 'rviz', 'hector_slam.rviz'
+        '2D_SLAM', 'hector_slam_ros2', 'rviz2', 'hector_slam.rviz'
     )
 
     return LaunchDescription([

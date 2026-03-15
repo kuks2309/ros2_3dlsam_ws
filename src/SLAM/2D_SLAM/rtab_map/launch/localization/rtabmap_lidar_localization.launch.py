@@ -19,7 +19,7 @@ def generate_launch_description():
     pkg_src = os.path.join(
         os.path.expanduser('~'), 'Study', 'ros2_3dslam_ws', 'src', 'SLAM', '2D_SLAM', 'rtab_map'
     )
-    rviz_config = os.path.join(pkg_src, 'rviz', 'rtabmap_lidar.rviz')
+    rviz_config = os.path.join(pkg_src, 'rviz2', 'rtabmap_lidar.rviz')
     default_db_path = os.path.join(
         os.path.expanduser('~'), 'Study', 'ros2_3dslam_ws', 'maps', 'rtabmap_2d', 'rtabmap.db'
     )

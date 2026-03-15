@@ -21,7 +21,7 @@ def generate_launch_description():
     )
     cartographer_config_dir = os.path.join(pkg_src, 'config')
     configuration_basename = 'cartographer_localization.lua'
-    rviz_config_file = os.path.join(pkg_src, 'rviz', 'cartographer.rviz')
+    rviz_config_file = os.path.join(pkg_src, 'rviz2', 'cartographer.rviz')
 
     default_map_file = os.path.join(
         os.path.expanduser('~'), 'Study', 'ros2_3dslam_ws', 'maps', 'cartographer', 'map.pbstream'
