@@ -62,7 +62,7 @@ SLAM 모드 실행 중 로봇을 충분히 이동시킨 후 지도를 저장합�
 ros2 service call /lio_sam/save_map livox_lio_sam/srv/SaveMap "{}"
 ```
 
-저장 위치: `/home/amap/Study/ros2_3dslam_ws/maps/lio_sam/`
+저장 위치: `~/Study/ros2_3dslam_ws/maps/lio_sam/`
 
 저장되는 파일:
 - `GlobalMap.pcd` - 전체 맵 (Localization에서 사용)
@@ -165,7 +165,7 @@ SLAM 파라미터와 동일하지만 다음 설정이 다릅니다:
 
 ```yaml
 localizationMode: true
-globalMapPath: "/home/amap/Study/ros2_3dslam_ws/maps/lio_sam/GlobalMap.pcd"
+globalMapPath: "~/Study/ros2_3dslam_ws/maps/lio_sam/GlobalMap.pcd"
 savePCD: false                               # 지도 저장 안 함 (읽기만)
 ```
 

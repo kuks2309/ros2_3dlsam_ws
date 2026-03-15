@@ -31,9 +31,12 @@ def generate_launch_description():
         default_value='true',
         description='Use simulation time (for Gazebo simulation)')
 
+    save_pcd_dir = os.path.expanduser('~/Study/ros2_3dslam_ws/maps/lio_sam/')
+
     print("======================================")
     print("  LIO-SAM SLAM Mode (Gazebo Simulation)")
     print("  Creating new map...")
+    print(f"  Save dir: {save_pcd_dir}")
     print("======================================")
 
     return LaunchDescription([
@@ -60,7 +63,8 @@ def generate_launch_description():
              output='screen'),
         Node(package='livox_lio_sam', executable='livox_lio_sam_mapOptimization',
              name='livox_lio_sam_mapOptimization',
-             parameters=[parameter_file, {'use_sim_time': LaunchConfiguration('use_sim_time')}],
+             parameters=[parameter_file, {'use_sim_time': LaunchConfiguration('use_sim_time'),
+                                          'savePCDDirectory': save_pcd_dir}],
              output='screen'),
         Node(package='rviz2', executable='rviz2', name='rviz2',
              arguments=['-d', rviz_config_file],
