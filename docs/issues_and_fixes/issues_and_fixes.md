@@ -170,31 +170,56 @@ rclcpp::exceptions::UnknownROSArgsError:
 
 ---
 
-### [FIX] Cartographer 3D TF 체인 끊김 (lidar_link frame dropping)
+### [FIX] Cartographer 3D TF 부모 프레임 충돌 → 맵 기울어짐/회전
 
-**증상:** RViz2에서 `Message Filter dropping message: frame 'lidar_link' ... queue is full` 반복
+**증상:** Cartographer 3D 실행 시 맵이 20-30도 기울어지고, 이동하면 맵이 계속 회전. RViz2에서 `Message Filter dropping message: frame 'lidar_link' ... queue is full`
 
-**원인:** lua 설정에서 `provide_odom_frame = false` + `published_frame = "odom"` → Cartographer가 `map → odom` TF만 발행하고 `odom → base_link`는 발행 안 함 → TF 체인 끊김
+**진단 과정:**
+
+1. 초기 설정: `published_frame = "odom"`, `provide_odom_frame = false` → `odom → base_link` TF 없음
+2. 1차 수정: `published_frame = "base_link"`, `provide_odom_frame = true` → **여전히 맵 회전**
+3. `ros2 topic info -v /imu/data` → QoS: RELIABLE (QoS 불일치 아님)
+4. IMU 데이터 정상: `linear_acceleration.z = 9.80` (중력), rate 199.92 Hz
+5. **`ros2 run tf2_tools view_frames`로 TF 트리 확인 → `map`, `odom` 프레임 아예 없음!**
+
+**근본 원인:** TF2 부모 프레임 충돌
 
 ```
-필요한 TF 체인: map → odom → base_link → lidar_link
-                          ↑ 여기가 없음
+Static TF:      base_footprint → base_link  (항상 발행됨)
+Cartographer:   odom → base_link            (published_frame = "base_link")
+                ↑ 같은 child(base_link)에 부모가 2개 → TF2가 Cartographer TF 무시
+                → map, odom 프레임이 TF 트리에 등장하지 않음
+                → RViz가 map 프레임 기준으로 포인트클라우드 변환 불가 → 맵 회전
 ```
 
-**해결:**
+**해결:** `published_frame`을 `"base_footprint"`로 변경 → 충돌 없는 TF 체인 구성
+
 ```lua
--- 수정 전
-published_frame = "odom",
-provide_odom_frame = false,
-
--- 수정 후
+-- 수정 전 (TF 충돌)
 published_frame = "base_link",
 provide_odom_frame = true,
+
+-- 수정 후 (정상)
+published_frame = "base_footprint",
+provide_odom_frame = true,
 ```
+
+```
+정상 TF 체인: map → odom → base_footprint → base_link → lidar_link
+              (Cartographer)    (Cartographer)    (Static TF)    (Static TF)
+              각 프레임의 부모가 하나씩 → 충돌 없음
+```
+
+**검증 결과:**
+- `tf2_echo map base_link`: RPY = [0.24°, 0.16°, -1.85°] (수평 유지)
+- `view_frames`: `map → odom → base_footprint → base_link → lidar_link` (정상 트리)
+- 맵 누적: 72,349 포인트 / 699 스캔 정상 누적
 
 **수정 파일:**
 - `src/SLAM/3D_SLAM/cartographer_slam_3d/config/cartographer_3d.lua`
 - `src/SLAM/3D_SLAM/cartographer_slam_3d/config/cartographer_3d_localization.lua`
+
+**핵심 교훈:** `published_frame`은 반드시 **static TF가 점유하지 않는 프레임**이어야 함. `base_link`처럼 이미 다른 부모(`base_footprint`)가 있는 프레임을 지정하면 Cartographer의 TF 발행이 무시됨.
 
 ---
 
