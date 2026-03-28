@@ -9,6 +9,14 @@ float64 max_linear_speed     # m/s (> 0 forward / < 0 reverse, max |0.4| for Gaz
 float64 acceleration         # m/s^2 (> 0)
 float64 exit_speed           # m/s (0=full stop, >0=exit at this speed)
 bool    has_next             # true=next segment exists, skip decel
+# ACS waypoint system fields
+uint8   CTRL_DEFAULT=0
+uint8   CTRL_MODE_A=1
+uint8   CTRL_MODE_B=2
+uint8   CTRL_MODE_C=3
+uint8   control_mode
+bool    hold_steer
+float64 exit_steer_angle
 ---
 # Result
 int8    status               # 0=success, -1=cancelled, -2=invalid_param, -3=timeout, -4=safety_stop

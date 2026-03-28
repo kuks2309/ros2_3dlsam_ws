@@ -1,4 +1,5 @@
 #include "amr_motion_control_2wd/translate_action_server.hpp"
+#include "amr_motion_control_2wd/motion_common.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -17,16 +18,6 @@ using std::placeholders::_2;
 namespace amr_motion_control_2wd
 {
 
-// ─── Helper: safe parameter read ──────────────────────────────────────────────
-template <typename T>
-static T safeParam(rclcpp::Node::SharedPtr node, const std::string & name, const T & def)
-{
-  if (!node->has_parameter(name)) {
-    node->declare_parameter<T>(name, def);
-  }
-  return node->get_parameter(name).get_value<T>();
-}
-
 // ─── Constructor ──────────────────────────────────────────────────────────────
 TranslateActionServer::TranslateActionServer(rclcpp::Node::SharedPtr node)
 : node_(node),
@@ -34,15 +25,15 @@ TranslateActionServer::TranslateActionServer(rclcpp::Node::SharedPtr node)
 {
   // ── Control parameters
   ctrl_freq_hz_           = safeParam(node_, "ctrl_freq_hz",            50.0);
-  wheel_base_             = safeParam(node_, "wheel_base",               0.54);
+  wheel_separation_       = safeParam(node_, "wheel_separation",         0.34);
   wheel_radius_           = safeParam(node_, "wheel_radius",             0.1);
   max_wheel_rpm_          = safeParam(node_, "max_wheel_rpm",          100.0);
-  stanley_k_              = safeParam(node_, "stanley_k",               0.8);
+  stanley_k_              = safeParam(node_, "translate_K_stanley",     2.0);
   stanley_softening_      = safeParam(node_, "stanley_softening",       0.3);
   pd_kp_                  = safeParam(node_, "pd_heading_kp",           2.0);
   pd_kd_                  = safeParam(node_, "pd_heading_kd",           0.1);
   omega_smoother_alpha_   = safeParam(node_, "omega_smoother_alpha",    0.4);
-  max_omega_              = safeParam(node_, "max_omega_rad_s",         1.5);
+  max_omega_              = safeParam(node_, "translate_max_omega",      1.0);
   arrive_dist_            = safeParam(node_, "translate_goal_reach_threshold", 0.05);
   lateral_recover_dist_   = safeParam(node_, "lateral_recover_dist_m",  0.8);
   watchdog_timeout_sec_   = safeParam(node_, "watchdog_timeout_sec",    2.0);
@@ -188,6 +179,8 @@ void TranslateActionServer::handleAccepted(
 void TranslateActionServer::execute(const std::shared_ptr<GoalHandle> goal_handle)
 {
   const auto & goal = goal_handle->get_goal();
+  ActionGuard _guard;
+  g_active_action.store(ActiveAction::TRANSLATE);
   auto start_time   = node_->now();
 
   // ── Validate path
@@ -393,7 +386,12 @@ void TranslateActionServer::execute(const std::shared_ptr<GoalHandle> goal_handl
 
     // ── Arrival check
     if (remaining <= arrive_dist_) {
-      publishCmdVel(0.0, 0.0);
+      if (has_next && std::abs(exit_v) > 1e-6) {
+        // Maintain exit speed for seamless segment transition
+        publishCmdVel(sign_v * std::abs(exit_v), prev_omega_);
+      } else {
+        publishCmdVel(0.0, 0.0);
+      }
       clearPathMarker();
       double e_head_deg = normalizeAngle(rob_yaw - theta_path_) * 180.0 / M_PI;
       auto result = std::make_shared<Translate::Result>();
@@ -469,13 +467,10 @@ void TranslateActionServer::execute(const std::shared_ptr<GoalHandle> goal_handl
 
     // ── PD heading control
     double de_theta = (e_theta_filt - prev_e_theta_) / dt;
-    double omega_pd = pd_kp_ * e_theta_filt + pd_kd_ * de_theta;
     prev_e_theta_   = e_theta_filt;
 
-    // Combine Stanley + PD
-    double omega_des = omega_pd + sign_v * (stanley_correction / dt) * 0.0;
     // Use Stanley angle as heading correction input
-    omega_des = sign_v * (pd_kp_ * (e_theta_filt + stanley_correction) +
+    double omega_des = sign_v * (pd_kp_ * (e_theta_filt + stanley_correction) +
                           pd_kd_ * de_theta);
 
     // Low-pass smoother
@@ -500,8 +495,8 @@ void TranslateActionServer::execute(const std::shared_ptr<GoalHandle> goal_handl
     feedback->current_omega         = omega_smooth;
     feedback->phase                 = static_cast<uint8_t>(profile_out.phase);
     // Wheel RPM (informational)
-    double omega_wheel_l = (vx_des - omega_smooth * wheel_base_ / 2.0) / wheel_radius_;
-    double omega_wheel_r = (vx_des + omega_smooth * wheel_base_ / 2.0) / wheel_radius_;
+    double omega_wheel_l = (vx_des - omega_smooth * wheel_separation_ / 2.0) / wheel_radius_;
+    double omega_wheel_r = (vx_des + omega_smooth * wheel_separation_ / 2.0) / wheel_radius_;
     feedback->w1_drive_rpm = omega_wheel_l * 60.0 / (2.0 * M_PI);
     feedback->w2_drive_rpm = omega_wheel_r * 60.0 / (2.0 * M_PI);
     goal_handle->publish_feedback(feedback);

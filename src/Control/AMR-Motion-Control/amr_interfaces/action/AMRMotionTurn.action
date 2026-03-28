@@ -4,6 +4,8 @@ float64 target_angle          # deg (+ CCW, - CW)
 float64 turn_radius           # m (> 0)
 float64 max_linear_speed      # m/s (always > 0, max 0.4 for Gazebo DiffDrive)
 float64 accel_angle           # deg (accel/decel angular distance, > 0)
+# ACS waypoint system field
+bool    hold_steer
 ---
 # Result
 int8    status                # 0=success, -1=cancelled, -2=invalid_param, -3=timeout

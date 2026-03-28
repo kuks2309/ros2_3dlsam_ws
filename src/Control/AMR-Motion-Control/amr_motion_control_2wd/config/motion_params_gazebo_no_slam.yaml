@@ -1,11 +1,18 @@
+# Motion control parameters for Gazebo WITHOUT SLAM (pure odometry mode)
+# Use this config when running Gazebo + ACS without RTAB-Map/LIO-SAM.
+# Pose source: Gazebo ground-truth /odom instead of SLAM odometry.
+# Requires static TF: map -> odom (identity) in launch file.
+#
+# Usage: ros2 launch amr_motion_control_2wd motion_control_gazebo.launch.py \
+#          config:=motion_params_gazebo_no_slam.yaml
+
 amr_motion_control_2wd:
   ros__parameters:
     # Pioneer 2DX geometry (from model.sdf DiffDrive plugin)
     wheel_separation: 0.34
     wheel_radius: 0.11
 
-    # TF frame (configurable per SLAM backend)
-    # RTAB-Map/Cartographer: "base_footprint", LIO-SAM: "base_link"
+    # TF frame
     robot_base_frame: "base_footprint"
 
     # Control rate
@@ -40,25 +47,17 @@ amr_motion_control_2wd:
     translate_walk_accel_limit: 0.5
     translate_walk_decel_limit: 1.0
 
-    # Localization pose topic (nav_msgs/Odometry)
-    # RTAB-Map: "/rtabmap/odom", LIO-SAM: "/lio_sam/mapping/odometry"
-    translate_pose_topic: "/rtabmap/odom"
-    translate_pose_qos: 2    # SensorDataQoS
+    # FIX: Use correct parameter name matching C++ code (max_omega_rad_s, not translate_max_omega)
+    max_omega_rad_s: 0.8
 
-    # Translate reverse parameters
-    translate_reverse_ctrl_freq_hz: 50.0
-    translate_reverse_stanley_k: 2.0
-    translate_reverse_stanley_softening: 0.3
-    translate_reverse_pd_heading_kp: 2.0
-    translate_reverse_pd_heading_kd: 0.1
-    translate_reverse_omega_smoother_alpha: 0.4
-    translate_reverse_max_omega_rad_s: 1.5
-    translate_reverse_goal_reach_threshold: 0.05
-    translate_reverse_lateral_recover_dist_m: 0.8
-    translate_reverse_watchdog_timeout_sec: 2.0
-    translate_reverse_watchdog_jump_threshold: 0.5
-    translate_reverse_watchdog_velocity_margin: 1.3
-    translate_reverse_pose_topic: "/rtabmap/odom"
+    # NO-SLAM: Pose topic = Gazebo ground-truth odometry
+    translate_pose_topic: "/odom"
+    translate_pose_qos: 2
+
+    # Translate reverse
+    translate_reverse_arrival_tolerance: 0.05
+    translate_reverse_pose_topic: "/odom"
+    translate_reverse_max_omega_rad_s: 0.8
 
     # YawControl parameters
     yaw_control_Kp_heading: 1.0
@@ -77,10 +76,6 @@ amr_motion_control_2wd:
     yaw_control_enable_localization_watchdog: true
     yaw_control_walk_accel_limit: 0.5
     yaw_control_walk_decel_limit: 1.0
-    yaw_control_pose_topic: "/rtabmap/odom"
+    yaw_control_pose_topic: "/odom"
     yaw_control_pose_qos: 2
     transient_omega_rate_limit: 0.5
-
-    # Gazebo DiffDrive velocity limits (for reference/clamping)
-    # max_linear_velocity: 0.4 m/s
-    # max_angular_velocity: 1.0 rad/s (57.3 deg/s)

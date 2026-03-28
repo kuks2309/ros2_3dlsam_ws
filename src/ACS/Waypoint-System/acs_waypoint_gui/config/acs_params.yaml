@@ -1,0 +1,7 @@
+acs_test_node:
+  ros__parameters:
+    job_file: ""
+    log_dir: "logs/missions"
+    default_max_speed: 0.3
+    default_acceleration: 0.3
+    loop: false
