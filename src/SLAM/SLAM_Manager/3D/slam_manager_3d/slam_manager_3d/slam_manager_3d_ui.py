@@ -59,6 +59,10 @@ class SlamManager3DUI(QtWidgets.QMainWindow):
         self.btnStartGazebo.clicked.connect(self.on_start_gazebo)
         self.btnStopGazebo.clicked.connect(self.on_stop_gazebo)
 
+        # Connect buttons - Data Source tab (Motion Control)
+        self.btnStartMotionControl.clicked.connect(self.on_start_motion_control)
+        self.btnStopMotionControl.clicked.connect(self.on_stop_motion_control)
+
         # Connect buttons - Data Source tab (Orbbec)
         self.btnStartOrbbec.clicked.connect(self.on_start_orbbec)
         self.btnStopOrbbec.clicked.connect(self.on_stop_orbbec)
@@ -194,6 +198,7 @@ class SlamManager3DUI(QtWidgets.QMainWindow):
             # Gazebo simulation launch files (*_gazebo.launch.py)
             launch_config = {
                 'gazebo': ('tm_gazebo', 'gazebo.launch.py'),
+                'motion_control': ('amr_motion_control_2wd', 'motion_control_gazebo.launch.py'),
                 'orbbec_camera': ('orbbec_camera', 'astra_pro.launch.py'),  # Not used in Gazebo
                 'rgbd_mapping': ('rtab_map_3d_config', 'rtabmap_rgbd_gazebo.launch.py'),
                 'rgbd_loc': ('rtab_map_3d_config', 'rtabmap_rgbd_loc_gazebo.launch.py'),
@@ -311,6 +316,24 @@ class SlamManager3DUI(QtWidgets.QMainWindow):
         """Stop Gazebo simulation"""
         if self.node.stop_launch_file('gazebo'):
             self.log("Gazebo simulation stopped")
+            self.update_button_states()
+
+    def on_start_motion_control(self):
+        """Start Motion Control"""
+        launch_info = self.node.launch_files.get('motion_control')
+        if launch_info:
+            pkg, launch = launch_info
+            if self.node.start_launch_file('motion_control', pkg, launch):
+                self.log("Motion Control started")
+                self.update_button_states()
+        else:
+            self.log("Motion Control package (amr_motion_control_2wd) not found!")
+            QMessageBox.warning(self, "Error", "Motion Control package (amr_motion_control_2wd) not found!")
+
+    def on_stop_motion_control(self):
+        """Stop Motion Control"""
+        if self.node.stop_launch_file('motion_control'):
+            self.log("Motion Control stopped")
             self.update_button_states()
 
     def on_start_orbbec(self):
@@ -944,6 +967,18 @@ class SlamManager3DUI(QtWidgets.QMainWindow):
         else:
             self.lblGazeboStatus.setText("Status: Stopped")
             self.btnStartGazebo.setStyleSheet(style_ready)
+
+        # Motion Control
+        motion_control_running = self.node.is_process_running('motion_control')
+        motion_control_configured = self.node.launch_files.get('motion_control') is not None
+        self.btnStartMotionControl.setEnabled(motion_control_configured and not motion_control_running)
+        self.btnStopMotionControl.setEnabled(motion_control_running)
+        if motion_control_running:
+            self.lblMotionControlStatus.setText("Status: Running")
+            self.btnStartMotionControl.setStyleSheet(style_running)
+        else:
+            self.lblMotionControlStatus.setText("Status: Stopped")
+            self.btnStartMotionControl.setStyleSheet(style_ready)
 
         # Orbbec Camera
         self.btnStartOrbbec.setEnabled(not orbbec_running)

@@ -1,0 +1,7 @@
+uint8 SAFETY_STOP = 1
+uint8 ESTOP = 2
+
+uint8 stop_type
+---
+bool success
+string message

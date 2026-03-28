@@ -1,0 +1,74 @@
+amr_motion_control_2wd:
+  ros__parameters:
+    # Pioneer 2DX geometry (from model.sdf DiffDrive plugin)
+    wheel_separation: 0.34
+    wheel_radius: 0.11
+
+    # TF frame (configurable per SLAM backend)
+    # RTAB-Map/Cartographer: "base_footprint", LIO-SAM: "base_link"
+    robot_base_frame: "base_footprint"
+
+    # Control rate
+    control_rate_hz: 50.0
+
+    # Spin precision (relaxed for Gazebo simulation)
+    imu_deadband_deg: 0.1
+    min_speed_dps: 3.0
+    fine_correction_threshold_deg: 0.5
+    fine_correction_speed_dps: 5.0
+    fine_correction_timeout_sec: 5.0
+    settling_delay_ms: 300
+
+    # Translate parameters
+    translate_Kp_heading: 1.0
+    translate_Kd_heading: 0.3
+    translate_K_stanley: 2.0
+    translate_K_soft: 1.0
+    translate_max_omega: 1.0
+    translate_alpha_max: 0.5
+    translate_heading_threshold_deg: 45.0
+    translate_max_lateral_offset: 1.0
+    translate_heading_filter_window: 5
+    translate_goal_reach_threshold: 0.05
+    translate_arrival_tolerance: 0.05
+    translate_min_vx: 0.02
+    translate_behind_start_speed: 0.2
+    translate_max_timeout_sec: 60.0
+    translate_localization_timeout_sec: 2.0
+    translate_position_jump_threshold: 0.5
+    translate_enable_localization_watchdog: true
+    translate_walk_accel_limit: 0.5
+    translate_walk_decel_limit: 1.0
+
+    # Localization pose topic (nav_msgs/Odometry)
+    # RTAB-Map: "/rtabmap/odom", LIO-SAM: "/lio_sam/mapping/odometry"
+    translate_pose_topic: "/rtabmap/odom"
+    translate_pose_qos: 2    # SensorDataQoS
+
+    # Translate reverse (same defaults)
+    translate_reverse_arrival_tolerance: 0.05
+
+    # YawControl parameters
+    yaw_control_Kp_heading: 1.0
+    yaw_control_Kd_heading: 0.3
+    yaw_control_max_omega: 1.0
+    yaw_control_heading_threshold_deg: 180.0
+    yaw_control_max_lateral_offset: 5.0
+    yaw_control_alpha_max: 0.5
+    yaw_control_min_turning_radius: 0.5
+    yaw_control_heading_filter_window: 5
+    yaw_control_goal_reach_threshold: 0.05
+    yaw_control_min_vx: 0.02
+    yaw_control_max_timeout_sec: 60.0
+    yaw_control_localization_timeout_sec: 2.0
+    yaw_control_position_jump_threshold: 0.5
+    yaw_control_enable_localization_watchdog: true
+    yaw_control_walk_accel_limit: 0.5
+    yaw_control_walk_decel_limit: 1.0
+    yaw_control_pose_topic: "/rtabmap/odom"
+    yaw_control_pose_qos: 2
+    transient_omega_rate_limit: 0.5
+
+    # Gazebo DiffDrive velocity limits (for reference/clamping)
+    # max_linear_velocity: 0.4 m/s
+    # max_angular_velocity: 1.0 rad/s (57.3 deg/s)

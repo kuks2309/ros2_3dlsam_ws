@@ -104,6 +104,7 @@ class SlamManager3DNode(Node):
         # Dictionary to store running processes
         self.processes = {
             'gazebo': None,
+            'motion_control': None,
             'orbbec_camera': None,
             'rgbd_mapping': None,
             'rgbd_loc': None,
@@ -118,6 +119,7 @@ class SlamManager3DNode(Node):
         # Store launch file paths
         self.launch_files = {
             'gazebo': None,
+            'motion_control': None,
             'orbbec_camera': None,
             'rgbd_mapping': None,
             'rgbd_loc': None,

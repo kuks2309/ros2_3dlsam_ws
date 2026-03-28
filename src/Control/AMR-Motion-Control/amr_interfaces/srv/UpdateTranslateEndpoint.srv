@@ -1,0 +1,6 @@
+float64 end_x
+float64 end_y
+bool    has_next
+---
+bool    success
+string  message
