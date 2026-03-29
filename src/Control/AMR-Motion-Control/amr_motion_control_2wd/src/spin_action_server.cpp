@@ -114,6 +114,21 @@ void SpinActionServer::handle_accepted(const std::shared_ptr<GoalHandle> goal_ha
 // ---------------------------------------------------------------------------
 void SpinActionServer::execute(const std::shared_ptr<GoalHandle> goal_handle)
 {
+  // RAII: clears g_active_action on scope exit
+  ActiveAction expected = ActiveAction::NONE;
+  if (!g_active_action.compare_exchange_strong(expected, ActiveAction::SPIN)) {
+    RCLCPP_WARN(node_->get_logger(),
+      "[SpinActionServer] another action is active (%s), aborting new goal",
+      to_string(g_active_action.load()));
+    auto result = std::make_shared<Spin::Result>();
+    result->status       = -2;
+    result->actual_angle = 0.0;
+    result->elapsed_time = 0.0;
+    goal_handle->abort(result);
+    return;
+  }
+  ActionGuard guard;
+
   const auto goal         = goal_handle->get_goal();
   const double target_deg = goal->target_angle;
   const double max_spd    = std::max(goal->max_angular_speed, min_speed_dps_);

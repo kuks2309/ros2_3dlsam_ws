@@ -3,6 +3,9 @@
 float64 target_angle          # deg (absolute, map frame; shortest path auto-selected)
 float64 max_angular_speed     # deg/s (always > 0, max 57.3 = 1.0 rad/s for Gazebo DiffDrive)
 float64 angular_acceleration  # deg/s² (always > 0)
+# ACS waypoint system fields (4WIS steering, ignored by 2WD diff drive)
+bool    hold_steer
+float64 exit_steer_angle
 ---
 # Result
 int8    status                # 0=success, -1=cancelled, -2=invalid_param, -3=timeout, -4=tf_fail

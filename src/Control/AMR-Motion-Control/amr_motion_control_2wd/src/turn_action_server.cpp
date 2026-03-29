@@ -69,20 +69,23 @@ rclcpp_action::GoalResponse TurnActionServer::handle_goal(
   const rclcpp_action::GoalUUID & /*uuid*/,
   std::shared_ptr<const Turn::Goal> goal)
 {
+  // Treat accel_angle == 0.0 (ROS2 default) as "use default 15.0 deg"
+  const double accel_angle = (goal->accel_angle <= 0.0) ? 15.0 : goal->accel_angle;
+
   RCLCPP_INFO(node_->get_logger(),
     "[TurnActionServer] Goal received: target=%.2f deg, radius=%.3f m, "
     "max_linear_speed=%.3f m/s, accel_angle=%.2f deg",
     goal->target_angle, goal->turn_radius,
-    goal->max_linear_speed, goal->accel_angle);
+    goal->max_linear_speed, accel_angle);
 
   if (goal->turn_radius <= 0.0 || goal->max_linear_speed <= 0.0 ||
-      goal->accel_angle <= 0.0  || goal->target_angle == 0.0)
+      goal->target_angle == 0.0)
   {
     RCLCPP_WARN(node_->get_logger(),
       "[TurnActionServer] Invalid params: radius=%.3f, max_v=%.3f, "
       "accel_angle=%.2f, target=%.2f",
       goal->turn_radius, goal->max_linear_speed,
-      goal->accel_angle, goal->target_angle);
+      accel_angle, goal->target_angle);
     return rclcpp_action::GoalResponse::REJECT;
   }
 
@@ -162,7 +165,8 @@ void TurnActionServer::execute(const std::shared_ptr<GoalHandleTurn> goal_handle
   const double target_deg      = goal->target_angle;       // signed (+ CCW, - CW)
   const double turn_radius     = goal->turn_radius;        // m
   const double max_linear_spd  = goal->max_linear_speed;   // m/s
-  const double accel_angle_deg = goal->accel_angle;        // deg
+  // Treat accel_angle == 0.0 (ROS2 default) as "use default 15.0 deg"
+  const double accel_angle_deg = (goal->accel_angle <= 0.0) ? 15.0 : goal->accel_angle;
 
   const double sign            = (target_deg >= 0.0) ? 1.0 : -1.0;
   const double target_abs_deg  = std::abs(target_deg);

@@ -28,7 +28,7 @@ TranslateReverseActionServer::TranslateReverseActionServer(rclcpp::Node::SharedP
 
   // ── Control parameters (translate_reverse-prefixed YAML params)
   ctrl_freq_hz_            = safeParam(node_, "translate_reverse_ctrl_freq_hz",            50.0);
-  wheel_base_              = safeParam(node_, "wheel_base",                                  0.54);
+  wheel_separation_        = safeParam(node_, "wheel_separation",                            0.34);
   wheel_radius_            = safeParam(node_, "wheel_radius",                                0.1);
   max_wheel_rpm_           = safeParam(node_, "max_wheel_rpm",                             100.0);
   stanley_k_               = safeParam(node_, "translate_reverse_stanley_k",               0.8);
@@ -393,7 +393,12 @@ void TranslateReverseActionServer::execute(const std::shared_ptr<GoalHandle> goa
 
     // ── Arrival check
     if (remaining <= arrive_dist_) {
-      publishCmdVel(0.0, 0.0);
+      if (has_next && std::abs(exit_v) > 1e-6) {
+        // Maintain exit speed for seamless segment transition
+        publishCmdVel(sign_v * std::abs(exit_v), prev_omega_);
+      } else {
+        publishCmdVel(0.0, 0.0);
+      }
       clearPathMarker();
       // For reverse, heading reference is rear of robot: theta_path_ + M_PI
       double e_head_deg = normalizeAngle(rob_yaw - (theta_path_ + M_PI)) * 180.0 / M_PI;
@@ -498,8 +503,8 @@ void TranslateReverseActionServer::execute(const std::shared_ptr<GoalHandle> goa
     feedback->current_omega         = omega_smooth;
     feedback->phase                 = static_cast<uint8_t>(profile_out.phase);
     // Wheel RPM (informational — vx_des is negative for reverse)
-    double omega_wheel_l = (vx_des - omega_smooth * wheel_base_ / 2.0) / wheel_radius_;
-    double omega_wheel_r = (vx_des + omega_smooth * wheel_base_ / 2.0) / wheel_radius_;
+    double omega_wheel_l = (vx_des - omega_smooth * wheel_separation_ / 2.0) / wheel_radius_;
+    double omega_wheel_r = (vx_des + omega_smooth * wheel_separation_ / 2.0) / wheel_radius_;
     feedback->w1_drive_rpm = omega_wheel_l * 60.0 / (2.0 * M_PI);
     feedback->w2_drive_rpm = omega_wheel_r * 60.0 / (2.0 * M_PI);
     goal_handle->publish_feedback(feedback);

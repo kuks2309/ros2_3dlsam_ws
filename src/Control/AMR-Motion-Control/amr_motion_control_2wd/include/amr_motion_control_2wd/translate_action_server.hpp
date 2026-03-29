@@ -93,7 +93,7 @@ private:
 
   // ── Control parameters (loaded from YAML) ────────────────────────────────
   double ctrl_freq_hz_;
-  double wheel_base_;
+  double wheel_separation_;
   double wheel_radius_;
   double max_wheel_rpm_;
 

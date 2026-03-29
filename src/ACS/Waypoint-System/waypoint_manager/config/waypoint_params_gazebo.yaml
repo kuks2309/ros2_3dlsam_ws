@@ -1,0 +1,35 @@
+waypoint_manager:
+  ros__parameters:
+    # TF frames
+    map_frame: "map"
+    robot_base_frame: "base_footprint"
+
+    # Mission
+    default_max_speed: 0.3
+    default_acceleration: 0.3
+    mission_timeout_sec: 600.0
+
+    # SegmentPlanner
+    segment_planner:
+      heading_threshold_deg: 10.0
+      min_translate_distance: 0.05
+      default_spin_speed: 40.0
+      default_spin_accel: 30.0
+      default_turn_accel_angle: 15.0
+      use_yaw_control: false
+
+    # ActionChainer — server names matching amr_motion_control_2wd
+    action_chainer:
+      spin_server: "spin"
+      translate_server: "amr_motion_translate"
+      translate_reverse_server: "amr_translate_reverse_action"
+      turn_server: "turn"
+      yaw_control_server: "amr_motion_yaw_control"
+      action_timeout_sec: 60.0
+
+    # RetryPolicy
+    retry_policy:
+      max_retries: 2
+      allow_skip: false
+      replan_on_fail: true
+      retry_backoff_sec: 1.0

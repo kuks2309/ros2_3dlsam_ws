@@ -1,0 +1,7 @@
+# ACS Gazebo Waypoint Test Job
+# Robot spawns at approximately (0, 0) in Gazebo my_world
+# Format: Type  X(m)  Y(m)  Yaw(deg)  Timeout(sec)
+AMR    1.0   0.0    0     30.0
+AMR    1.0   1.0   90     30.0
+AMR    0.0   1.0  180     30.0
+AMR    0.0   0.0  270     30.0

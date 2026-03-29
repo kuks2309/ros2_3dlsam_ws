@@ -1,0 +1,9 @@
+# waypoint_interfaces/msg/MissionStatus.msg
+uint32  current_waypoint_id
+uint32  current_segment_id
+uint8   segment_action_type
+uint8   segment_phase
+float64 progress_percent
+float64 distance_to_waypoint
+float64 current_speed
+float64 mission_elapsed_time
