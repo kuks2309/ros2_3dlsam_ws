@@ -41,15 +41,24 @@ ament_target_dependencies(map_alignment_checker_node ${DEPS})
 target_include_directories(map_alignment_checker_node PUBLIC include)
 target_link_libraries(map_alignment_checker_node ${OpenCV_LIBS})
 
-# exploration_planner_node (stub - M5 태스크가 생성)
+# exploration_planner_node
+add_executable(exploration_planner_node
+  src/exploration_planner_node.cpp
+  src/main_exploration_planner.cpp)
+ament_target_dependencies(exploration_planner_node ${DEPS})
+target_include_directories(exploration_planner_node PUBLIC include)
+
 # mapper_orchestrator_node (stub - M6 태스크가 생성)
 
 install(TARGETS
   wall_aligner_node
   map_alignment_checker_node
+  exploration_planner_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY config/ DESTINATION share/${PROJECT_NAME}/config)
+install(DIRECTORY launch/ DESTINATION share/${PROJECT_NAME}/launch)
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
@@ -65,6 +74,12 @@ if(BUILD_TESTING)
   ament_target_dependencies(test_map_alignment_checker ${DEPS})
   target_include_directories(test_map_alignment_checker PUBLIC include)
   target_link_libraries(test_map_alignment_checker ${OpenCV_LIBS})
+
+  ament_add_gtest(test_exploration_planner
+    test/test_exploration_planner.cpp
+    src/exploration_planner_node.cpp)
+  ament_target_dependencies(test_exploration_planner ${DEPS})
+  target_include_directories(test_exploration_planner PUBLIC include)
 endif()
 
 ament_package()
