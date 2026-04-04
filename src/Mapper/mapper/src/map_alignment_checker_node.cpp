@@ -11,6 +11,8 @@ MapAlignmentCheckerNode::MapAlignmentCheckerNode(
     using namespace std::placeholders;
 
     // C1: 파라미터 선언 및 로드
+    hough_rho_             = declare_parameter("hough_rho", 1.0);
+    hough_theta_           = declare_parameter("hough_theta", 0.017453292);
     hough_threshold_       = static_cast<int>(declare_parameter("hough_threshold", 50));
     hough_min_line_length_ = declare_parameter("hough_min_line_length", 20.0);
     hough_max_line_gap_    = declare_parameter("hough_max_line_gap", 5.0);

@@ -33,11 +33,13 @@ MapperOrchestratorNode::MapperOrchestratorNode(
     explore_client_    = rclcpp_action::create_client<
         mapper_interfaces::action::ExploreUnknown>(this, "explore_unknown");
 
-    // C2: 2D/3D SLAM 서비스 클라이언트 분리
-    slam_ctrl_client_2d_ = create_client<mapper_interfaces::srv::SlamControl>(
-        "slam_manager_2d/slam_control");
-    slam_ctrl_client_3d_ = create_client<mapper_interfaces::srv::SlamControl>(
-        "slam_manager_3d/slam_control");
+    // C2: 2D/3D SLAM 서비스 클라이언트 분리 (서비스 이름 파라미터화)
+    auto svc_2d = declare_parameter("slam_control_service_2d",
+        std::string("slam_manager_2d/slam_control"));
+    auto svc_3d = declare_parameter("slam_control_service_3d",
+        std::string("slam_manager_3d/slam_control"));
+    slam_ctrl_client_2d_ = create_client<mapper_interfaces::srv::SlamControl>(svc_2d);
+    slam_ctrl_client_3d_ = create_client<mapper_interfaces::srv::SlamControl>(svc_3d);
 
     status_timer_ = create_wall_timer(
         std::chrono::milliseconds(100),
@@ -205,7 +207,7 @@ void MapperOrchestratorNode::run_aligning() {
         transition_to(MapperState::STARTING_SLAM);
         run_starting_slam();
     } else {
-        align_retry_count_.store(align_retry_count_.load() + 1);  // H3: atomic
+        align_retry_count_.fetch_add(1);  // H3: atomic
         if (align_retry_count_.load() >= max_align_retries_) {
             log("Alignment failed after max retries");
             transition_to(MapperState::ERROR);

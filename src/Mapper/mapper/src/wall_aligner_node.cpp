@@ -15,10 +15,13 @@ WallAlignerNode::WallAlignerNode(const rclcpp::NodeOptions & options)
     using namespace std::placeholders;
 
     // C1: 파라미터 선언 및 로드
-    tolerance_deg_  = declare_parameter("tolerance_deg", 0.2);
-    max_iterations_ = static_cast<int>(declare_parameter("max_iterations", 100));
-    inlier_dist_m_  = declare_parameter("inlier_dist_m", 0.05);
-    min_inliers_    = static_cast<int>(declare_parameter("min_inliers", 10));
+    tolerance_deg_    = declare_parameter("tolerance_deg", 0.2);
+    max_iterations_   = static_cast<int>(declare_parameter("max_attempts", 5));
+    inlier_dist_m_    = declare_parameter("inlier_dist_m", 0.05);
+    min_inliers_      = static_cast<int>(declare_parameter("min_inliers", 10));
+    spin_speed_deg_s_ = declare_parameter("spin_speed_deg_s", 40.0);
+    spin_accel_deg_s2_ = declare_parameter("spin_accel_deg_s2", 30.0);
+    spin_server_name_  = declare_parameter("spin_server", std::string("spin"));
 
     // /scan QoS: BEST_EFFORT + VOLATILE (LiDAR 센서 표준)
     auto scan_qos = rclcpp::QoS(10)
@@ -31,7 +34,7 @@ WallAlignerNode::WallAlignerNode(const rclcpp::NodeOptions & options)
             latest_scan_ = msg;
         });
 
-    spin_client_ = rclcpp_action::create_client<SpinAction>(this, "spin");
+    spin_client_ = rclcpp_action::create_client<SpinAction>(this, spin_server_name_);
 
     auto cb_group = create_callback_group(
         rclcpp::CallbackGroupType::MutuallyExclusive);
