@@ -40,7 +40,7 @@ MapAlignmentCheckerNode::MapAlignmentCheckerNode(
 
 double MapAlignmentCheckerNode::check_alignment(
     const nav_msgs::msg::OccupancyGrid & map,
-    double /*tolerance_deg*/)
+    double /*tolerance_deg*/) const
 {
     cv::Mat img = occupancy_grid_to_mat(map);
     if (img.empty()) return 0.0;
@@ -67,9 +67,12 @@ double MapAlignmentCheckerNode::check_alignment(
 }
 
 cv::Mat MapAlignmentCheckerNode::occupancy_grid_to_mat(
-    const nav_msgs::msg::OccupancyGrid & map)
+    const nav_msgs::msg::OccupancyGrid & map) const
 {
     if (map.info.width == 0 || map.info.height == 0) return {};
+    if (map.data.size() < static_cast<size_t>(map.info.width * map.info.height)) {
+        return cv::Mat();
+    }
     cv::Mat img(map.info.height, map.info.width, CV_8UC1, cv::Scalar(0));
     for (int y = 0; y < (int)map.info.height; ++y) {
         for (int x = 0; x < (int)map.info.width; ++x) {
@@ -116,6 +119,15 @@ void MapAlignmentCheckerNode::execute(
             if (latest_map_) { map_copy = *latest_map_; break; }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    if (map_copy.info.width == 0 || map_copy.info.height == 0) {
+        auto result = std::make_shared<mapper_interfaces::action::MapAlignmentCheck::Result>();
+        result->is_aligned = false;
+        result->max_wall_error_deg = -1.0;
+        goal_handle->abort(result);
+        RCLCPP_ERROR(get_logger(), "No map received within timeout");
+        return;
     }
 
     double max_error = check_alignment(map_copy, goal->tolerance_deg);

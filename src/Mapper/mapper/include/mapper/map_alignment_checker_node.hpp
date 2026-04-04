@@ -18,7 +18,7 @@ public:
 
     // 테스트용 public 메서드
     double check_alignment(const nav_msgs::msg::OccupancyGrid & map,
-                           double tolerance_deg);
+                           double tolerance_deg) const;
 
 private:
     rclcpp_action::Server<CheckAction>::SharedPtr server_;
@@ -39,7 +39,7 @@ private:
         std::shared_ptr<GoalHandle> goal_handle);
     void handle_accepted(std::shared_ptr<GoalHandle> goal_handle);
     void execute(std::shared_ptr<GoalHandle> goal_handle);
-    cv::Mat occupancy_grid_to_mat(const nav_msgs::msg::OccupancyGrid & map);
+    cv::Mat occupancy_grid_to_mat(const nav_msgs::msg::OccupancyGrid & map) const;
 };
 
 }  // namespace mapper
