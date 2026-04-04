@@ -35,7 +35,6 @@ MapperOrchestratorNode::MapperOrchestratorNode(
 }
 
 void MapperOrchestratorNode::transition_to(MapperState new_state) {
-    std::lock_guard<std::mutex> lock(state_mutex_);
     RCLCPP_INFO(get_logger(), "State: %d -> %d",
         static_cast<int>(state_.load()), static_cast<int>(new_state));
     state_.store(new_state);
@@ -43,6 +42,7 @@ void MapperOrchestratorNode::transition_to(MapperState new_state) {
 
 void MapperOrchestratorNode::log(const std::string & msg) {
     RCLCPP_INFO(get_logger(), "%s", msg.c_str());
+    std::lock_guard<std::mutex> lk(log_mutex_);
     log_message_ = msg;
 }
 
@@ -52,7 +52,10 @@ void MapperOrchestratorNode::publish_status() {
     status.previous_state          = static_cast<uint8_t>(previous_state_);
     status.coverage_percent        = coverage_percent_;
     status.current_heading_error_deg = heading_error_deg_;
-    status.log_message             = log_message_;
+    {
+        std::lock_guard<std::mutex> lk(log_mutex_);
+        status.log_message = log_message_;
+    }
     status_pub_->publish(status);
 }
 
@@ -61,6 +64,7 @@ void MapperOrchestratorNode::handle_command(
     mapper_interfaces::srv::MapperCommand::Response::SharedPtr res)
 {
     using Cmd = mapper_interfaces::srv::MapperCommand::Request;
+    std::lock_guard<std::mutex> lock(state_mutex_);
     auto state = state_.load();
 
     switch (req->command) {
@@ -160,25 +164,25 @@ void MapperOrchestratorNode::run_aligning() {
     goal.tolerance_deg      = 0.2;
     goal.use_imu_correction = false;
 
-    std::atomic<bool> done{false};
-    std::atomic<int8_t> result_status{-1};
+    auto done = std::make_shared<std::atomic<bool>>(false);
+    auto result_status = std::make_shared<std::atomic<int8_t>>(-1);
 
     auto opts = rclcpp_action::Client<
         mapper_interfaces::action::WallAlign>::SendGoalOptions{};
-    opts.result_callback = [&done, &result_status](const auto & r) {
-        result_status.store(r.result->status);
-        done.store(true);
+    opts.result_callback = [done, result_status](const auto & r) {
+        result_status->store(r.result->status);
+        done->store(true);
     };
 
     wall_align_client_->async_send_goal(goal, opts);
-    while (!done.load() && rclcpp::ok() &&
+    while (!done->load() && rclcpp::ok() &&
            state_.load() != MapperState::IDLE) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     if (state_.load() == MapperState::IDLE) return;
 
-    if (result_status.load() == 0) {
+    if (result_status->load() == 0) {
         align_retry_count_ = 0;
         transition_to(MapperState::STARTING_SLAM);
         run_starting_slam();
@@ -215,18 +219,18 @@ void MapperOrchestratorNode::run_starting_slam() {
         SlamCtrl::Request::CMD_START_2D :
         SlamCtrl::Request::CMD_START_3D;
 
-    std::atomic<bool> done{false};
-    std::atomic<bool> success{false};
+    auto done = std::make_shared<std::atomic<bool>>(false);
+    auto success = std::make_shared<std::atomic<bool>>(false);
     slam_ctrl_client_->async_send_request(req,
-        [&done, &success](rclcpp::Client<SlamCtrl>::SharedFuture fut) {
-            success.store(fut.get()->success);
-            done.store(true);
+        [done, success](rclcpp::Client<SlamCtrl>::SharedFuture fut) {
+            success->store(fut.get()->success);
+            done->store(true);
         });
-    while (!done.load() && rclcpp::ok()) {
+    while (!done->load() && rclcpp::ok()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
-    if (!success.load()) {
+    if (!success->load()) {
         log("SLAM start failed");
         transition_to(MapperState::ERROR);
         return;
@@ -258,25 +262,25 @@ void MapperOrchestratorNode::run_verifying_map() {
     mapper_interfaces::action::MapAlignmentCheck::Goal goal{};
     goal.tolerance_deg = 0.5;
 
-    std::atomic<bool> done{false};
-    bool is_aligned = true;
+    auto done = std::make_shared<std::atomic<bool>>(false);
+    auto is_aligned = std::make_shared<std::atomic<bool>>(true);
 
     auto opts = rclcpp_action::Client<
         mapper_interfaces::action::MapAlignmentCheck>::SendGoalOptions{};
-    opts.result_callback = [&done, &is_aligned](const auto & r) {
-        is_aligned = r.result->is_aligned;
-        done.store(true);
+    opts.result_callback = [done, is_aligned](const auto & r) {
+        is_aligned->store(r.result->is_aligned);
+        done->store(true);
     };
 
     map_check_client_->async_send_goal(goal, opts);
-    while (!done.load() && rclcpp::ok() &&
+    while (!done->load() && rclcpp::ok() &&
            state_.load() != MapperState::IDLE) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     if (state_.load() == MapperState::IDLE) return;
 
-    if (is_aligned) {
+    if (is_aligned->load()) {
         log("Map alignment verified");
         transition_to(MapperState::MAPPING_MANUAL);
     } else {
@@ -311,30 +315,32 @@ void MapperOrchestratorNode::run_exploring() {
     goal.mode = drive_mode_;
     goal.min_coverage_to_stop = min_coverage_to_stop_;
 
-    std::atomic<bool> done{false};
-    std::atomic<int8_t> result_status{-1};
+    auto done = std::make_shared<std::atomic<bool>>(false);
+    auto result_status = std::make_shared<std::atomic<int8_t>>(-1);
+    auto coverage = std::make_shared<std::atomic<float>>(0.0f);
 
     auto opts = rclcpp_action::Client<
         mapper_interfaces::action::ExploreUnknown>::SendGoalOptions{};
-    opts.feedback_callback = [this](auto, const auto & fb) {
-        coverage_percent_ = fb->coverage_percent;
+    opts.feedback_callback = [coverage](auto, const auto & fb) {
+        coverage->store(fb->coverage_percent);
     };
-    opts.result_callback = [&done, &result_status](const auto & r) {
-        result_status.store(r.result->status);
-        done.store(true);
+    opts.result_callback = [done, result_status](const auto & r) {
+        result_status->store(r.result->status);
+        done->store(true);
     };
 
     explore_client_->async_send_goal(goal, opts);
-    while (!done.load() && rclcpp::ok() &&
+    while (!done->load() && rclcpp::ok() &&
            state_.load() != MapperState::IDLE &&
            state_.load() != MapperState::PAUSED) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+    coverage_percent_ = coverage->load();
 
     if (state_.load() == MapperState::IDLE) return;
     if (state_.load() == MapperState::PAUSED) return;
 
-    if (result_status.load() == 0) {
+    if (result_status->load() == 0) {
         transition_to(MapperState::LOOP_CLOSING);
         run_loop_closing();
     } else {
@@ -346,7 +352,7 @@ void MapperOrchestratorNode::run_exploring() {
 void MapperOrchestratorNode::run_loop_closing() {
     log("Waiting for loop closure...");
     auto start = std::chrono::steady_clock::now();
-    while (rclcpp::ok()) {
+    while (rclcpp::ok() && state_.load() != MapperState::IDLE) {
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::steady_clock::now() - start).count();
         if (elapsed >= static_cast<long>(loop_closure_timeout_sec_)) {
@@ -355,6 +361,7 @@ void MapperOrchestratorNode::run_loop_closing() {
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
+    if (state_.load() == MapperState::IDLE) return;
     transition_to(MapperState::COMPLETED);
     log("Mapping completed");
 }

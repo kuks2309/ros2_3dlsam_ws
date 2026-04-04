@@ -79,6 +79,7 @@ private:
     void publish_status();
     void log(const std::string & msg);
 
+    mutable std::mutex log_mutex_;
     std::string log_message_;
     float coverage_percent_{0.0f};
     double heading_error_deg_{0.0};
