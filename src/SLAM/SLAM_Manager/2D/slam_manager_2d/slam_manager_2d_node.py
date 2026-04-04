@@ -179,7 +179,7 @@ class SlamManagerNode(Node):
     def _log(self, msg: str):
         """UI가 있으면 UI에, 없으면 ROS logger에 로그"""
         if self.ui:
-            self._log(msg)
+            self.ui.log(msg)
         else:
             self.get_logger().info(msg)
 
