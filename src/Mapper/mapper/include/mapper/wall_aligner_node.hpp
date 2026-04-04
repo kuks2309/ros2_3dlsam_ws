@@ -34,6 +34,10 @@ private:
     sensor_msgs::msg::LaserScan::SharedPtr latest_scan_;
     std::mutex scan_mutex_;
 
+    double tolerance_deg_{0.2};
+    int    max_iterations_{100};
+    double inlier_dist_m_{0.05};
+    int    min_inliers_{10};
     double spin_speed_deg_s_{40.0};
     double spin_accel_deg_s2_{30.0};
     std::string spin_server_name_{"spin"};

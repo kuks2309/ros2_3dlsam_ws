@@ -12,6 +12,10 @@ ExplorationPlannerNode::ExplorationPlannerNode(
 {
     using namespace std::placeholders;
 
+    // C1: 파라미터 선언 및 로드
+    max_linear_speed_ = declare_parameter("max_linear_speed", 0.2);
+    acceleration_     = declare_parameter("acceleration", 0.3);
+
     auto map_qos = rclcpp::QoS(3).reliable().transient_local();
     map_sub_ = create_subscription<nav_msgs::msg::OccupancyGrid>(
         "map", map_qos,

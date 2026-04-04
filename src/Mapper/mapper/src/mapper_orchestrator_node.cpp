@@ -9,6 +9,12 @@ MapperOrchestratorNode::MapperOrchestratorNode(
 {
     using namespace std::placeholders;
 
+    // C1: 파라미터 선언 및 로드
+    max_align_retries_        = static_cast<int>(declare_parameter("max_align_retries", 3));
+    map_stabilize_wait_sec_   = declare_parameter("map_stabilize_wait_sec", 3.0);
+    loop_closure_timeout_sec_ = declare_parameter("loop_closure_timeout_sec", 30.0);
+    min_coverage_to_stop_     = static_cast<float>(declare_parameter("min_coverage_to_stop", 0.95));
+
     status_pub_ = create_publisher<mapper_interfaces::msg::MapperStatus>(
         "mapper/status", rclcpp::QoS(10).reliable());
 
@@ -26,18 +32,31 @@ MapperOrchestratorNode::MapperOrchestratorNode(
         mapper_interfaces::action::MapAlignmentCheck>(this, "map_alignment_check");
     explore_client_    = rclcpp_action::create_client<
         mapper_interfaces::action::ExploreUnknown>(this, "explore_unknown");
-    slam_ctrl_client_  = create_client<mapper_interfaces::srv::SlamControl>(
+
+    // C2: 2D/3D SLAM 서비스 클라이언트 분리
+    slam_ctrl_client_2d_ = create_client<mapper_interfaces::srv::SlamControl>(
         "slam_manager_2d/slam_control");
+    slam_ctrl_client_3d_ = create_client<mapper_interfaces::srv::SlamControl>(
+        "slam_manager_3d/slam_control");
 
     status_timer_ = create_wall_timer(
         std::chrono::milliseconds(100),
         std::bind(&MapperOrchestratorNode::publish_status, this));
 }
 
-void MapperOrchestratorNode::transition_to(MapperState new_state) {
-    RCLCPP_INFO(get_logger(), "State: %d -> %d",
-        static_cast<int>(state_.load()), static_cast<int>(new_state));
+// H4: 내부 버전 (이미 mutex를 잡은 경우)
+void MapperOrchestratorNode::transition_to_unlocked(MapperState new_state) {
+    auto old_state = state_.load();
+    previous_state_.store(old_state);  // H2: previous_state_ 갱신
     state_.store(new_state);
+    RCLCPP_INFO(get_logger(), "State: %d -> %d",
+        static_cast<int>(old_state), static_cast<int>(new_state));
+}
+
+// H4: 외부 버전 (mutex 자동 획득)
+void MapperOrchestratorNode::transition_to(MapperState new_state) {
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    transition_to_unlocked(new_state);
 }
 
 void MapperOrchestratorNode::log(const std::string & msg) {
@@ -50,8 +69,8 @@ void MapperOrchestratorNode::publish_status() {
     mapper_interfaces::msg::MapperStatus status;
     status.state                   = static_cast<uint8_t>(state_.load());
     status.previous_state          = static_cast<uint8_t>(previous_state_.load());
-    status.coverage_percent        = coverage_percent_;
-    status.current_heading_error_deg = heading_error_deg_;
+    status.coverage_percent        = coverage_percent_.load();   // H3: atomic load
+    status.current_heading_error_deg = heading_error_deg_.load(); // H3: atomic load
     {
         std::lock_guard<std::mutex> lk(log_mutex_);
         status.log_message = log_message_;
@@ -72,8 +91,8 @@ void MapperOrchestratorNode::handle_command(
         if (state == MapperState::IDLE) {
             slam_mode_  = req->slam_mode;
             drive_mode_ = req->drive_mode;
-            align_retry_count_ = 0;
-            transition_to(MapperState::ALIGNING);
+            align_retry_count_.store(0);
+            transition_to_unlocked(MapperState::ALIGNING);  // H4: 이미 mutex 보유
             std::thread([this]{ run_aligning(); }).detach();
             res->success = true;
             res->message = "Mapping started";
@@ -87,8 +106,7 @@ void MapperOrchestratorNode::handle_command(
         if (state == MapperState::MAPPING_MANUAL ||
             state == MapperState::MAPPING_AUTO ||
             state == MapperState::EXPLORING_UNKNOWN) {
-            previous_state_.store(state);
-            transition_to(MapperState::PAUSED);
+            transition_to_unlocked(MapperState::PAUSED);  // H2+H4: previous_state_ 자동 갱신
             res->success = true;
             res->message = "Paused";
         } else {
@@ -100,7 +118,7 @@ void MapperOrchestratorNode::handle_command(
     case Cmd::CMD_RESUME:
         if (state == MapperState::PAUSED) {
             auto prev = previous_state_.load();
-            transition_to(prev);
+            transition_to_unlocked(prev);  // H4
             if (prev == MapperState::MAPPING_MANUAL)
                 std::thread([this]{ run_mapping_manual(); }).detach();
             else if (prev == MapperState::EXPLORING_UNKNOWN)
@@ -114,7 +132,7 @@ void MapperOrchestratorNode::handle_command(
         break;
 
     case Cmd::CMD_STOP:
-        transition_to(MapperState::IDLE);
+        transition_to_unlocked(MapperState::IDLE);  // H4
         if (wall_align_client_) wall_align_client_->async_cancel_all_goals();
         if (map_check_client_)  map_check_client_->async_cancel_all_goals();
         if (explore_client_)    explore_client_->async_cancel_all_goals();
@@ -124,7 +142,7 @@ void MapperOrchestratorNode::handle_command(
 
     case Cmd::CMD_EXPLORE:
         if (state == MapperState::MAPPING_MANUAL) {
-            transition_to(MapperState::EXPLORING_UNKNOWN);
+            transition_to_unlocked(MapperState::EXPLORING_UNKNOWN);  // H4
             std::thread([this]{ run_exploring(); }).detach();
             res->success = true;
             res->message = "Exploration started";
@@ -183,12 +201,12 @@ void MapperOrchestratorNode::run_aligning() {
     if (state_.load() == MapperState::IDLE) return;
 
     if (result_status->load() == 0) {
-        align_retry_count_ = 0;
+        align_retry_count_.store(0);  // H3: atomic store
         transition_to(MapperState::STARTING_SLAM);
         run_starting_slam();
     } else {
-        ++align_retry_count_;
-        if (align_retry_count_ >= max_align_retries_) {
+        align_retry_count_.store(align_retry_count_.load() + 1);  // H3: atomic
+        if (align_retry_count_.load() >= max_align_retries_) {
             log("Alignment failed after max retries");
             transition_to(MapperState::ERROR);
         } else {
@@ -200,10 +218,13 @@ void MapperOrchestratorNode::run_aligning() {
 void MapperOrchestratorNode::run_starting_slam() {
     if (state_.load() == MapperState::IDLE) return;
 
+    // C2: slam_mode_에 따라 적절한 클라이언트 선택
+    auto& slam_client = (slam_mode_ == 0) ? slam_ctrl_client_2d_ : slam_ctrl_client_3d_;
+
     bool svc_ready = false;
     for (int i = 0; i < 50 && rclcpp::ok(); ++i) {
         if (state_.load() == MapperState::IDLE) return;
-        if (slam_ctrl_client_->service_is_ready()) { svc_ready = true; break; }
+        if (slam_client->service_is_ready()) { svc_ready = true; break; }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     if (!svc_ready) {
@@ -221,14 +242,18 @@ void MapperOrchestratorNode::run_starting_slam() {
 
     auto done = std::make_shared<std::atomic<bool>>(false);
     auto success = std::make_shared<std::atomic<bool>>(false);
-    slam_ctrl_client_->async_send_request(req,
+    slam_client->async_send_request(req,
         [done, success](rclcpp::Client<SlamCtrl>::SharedFuture fut) {
             success->store(fut.get()->success);
             done->store(true);
         });
-    while (!done->load() && rclcpp::ok()) {
+
+    // M3: IDLE 체크 추가
+    while (!done->load() && rclcpp::ok() &&
+           state_.load() != MapperState::IDLE) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+    if (state_.load() == MapperState::IDLE) return;
 
     if (!success->load()) {
         log("SLAM start failed");
@@ -285,7 +310,7 @@ void MapperOrchestratorNode::run_verifying_map() {
         transition_to(MapperState::MAPPING_MANUAL);
     } else {
         log("Map misaligned -- re-aligning");
-        align_retry_count_ = 0;
+        align_retry_count_.store(0);  // H3: atomic store
         transition_to(MapperState::ALIGNING);
         run_aligning();
     }
@@ -335,7 +360,7 @@ void MapperOrchestratorNode::run_exploring() {
            state_.load() != MapperState::PAUSED) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    coverage_percent_ = coverage->load();
+    coverage_percent_.store(coverage->load());  // H3: atomic store
 
     if (state_.load() == MapperState::IDLE) return;
     if (state_.load() == MapperState::PAUSED) return;

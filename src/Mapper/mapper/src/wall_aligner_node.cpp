@@ -14,6 +14,12 @@ WallAlignerNode::WallAlignerNode(const rclcpp::NodeOptions & options)
 {
     using namespace std::placeholders;
 
+    // C1: 파라미터 선언 및 로드
+    tolerance_deg_  = declare_parameter("tolerance_deg", 0.2);
+    max_iterations_ = static_cast<int>(declare_parameter("max_iterations", 100));
+    inlier_dist_m_  = declare_parameter("inlier_dist_m", 0.05);
+    min_inliers_    = static_cast<int>(declare_parameter("min_inliers", 10));
+
     // /scan QoS: BEST_EFFORT + VOLATILE (LiDAR 센서 표준)
     auto scan_qos = rclcpp::QoS(10)
         .best_effort()
@@ -52,11 +58,9 @@ Line2D WallAlignerNode::detect_longest_wall(
 
     std::mt19937 rng(42);
     std::uniform_int_distribution<int> dist(0, (int)pts.size() - 1);
-    const int ITERATIONS = 100;
-    const double INLIER_DIST = 0.05;
 
     Line2D best{0.0, 0};
-    for (int iter = 0; iter < ITERATIONS; ++iter) {
+    for (int iter = 0; iter < max_iterations_; ++iter) {
         int i1 = dist(rng), i2 = dist(rng);
         if (i1 == i2) continue;
         double dx = pts[i2].first  - pts[i1].first;
@@ -69,7 +73,7 @@ Line2D WallAlignerNode::detect_longest_wall(
 
         int inliers = 0;
         for (auto & p : pts) {
-            if (std::abs(a * p.first + b * p.second + c) < INLIER_DIST) {
+            if (std::abs(a * p.first + b * p.second + c) < inlier_dist_m_) {
                 ++inliers;
             }
         }

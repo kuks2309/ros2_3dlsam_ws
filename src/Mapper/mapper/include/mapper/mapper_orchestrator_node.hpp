@@ -45,7 +45,9 @@ private:
     std::atomic<MapperState> state_{MapperState::IDLE};
     std::atomic<MapperState> previous_state_{MapperState::IDLE};
     std::mutex  state_mutex_;
-    int align_retry_count_{0};
+    std::atomic<int>    align_retry_count_{0};
+    std::atomic<float>  coverage_percent_{0.0f};
+    std::atomic<double> heading_error_deg_{0.0};
 
     int    max_align_retries_{3};
     double map_stabilize_wait_sec_{3.0};
@@ -62,9 +64,11 @@ private:
     rclcpp_action::Client<mapper_interfaces::action::WallAlign>::SharedPtr wall_align_client_;
     rclcpp_action::Client<mapper_interfaces::action::MapAlignmentCheck>::SharedPtr map_check_client_;
     rclcpp_action::Client<mapper_interfaces::action::ExploreUnknown>::SharedPtr explore_client_;
-    rclcpp::Client<mapper_interfaces::srv::SlamControl>::SharedPtr slam_ctrl_client_;
+    rclcpp::Client<mapper_interfaces::srv::SlamControl>::SharedPtr slam_ctrl_client_2d_;
+    rclcpp::Client<mapper_interfaces::srv::SlamControl>::SharedPtr slam_ctrl_client_3d_;
 
     void transition_to(MapperState new_state);
+    void transition_to_unlocked(MapperState new_state);
     void run_aligning();
     void run_starting_slam();
     void run_verifying_map();
@@ -81,8 +85,6 @@ private:
 
     mutable std::mutex log_mutex_;
     std::string log_message_;
-    float coverage_percent_{0.0f};
-    double heading_error_deg_{0.0};
 };
 
 }  // namespace mapper

@@ -31,7 +31,6 @@ add_executable(wall_aligner_node
   src/main_wall_aligner.cpp)
 ament_target_dependencies(wall_aligner_node ${DEPS})
 target_include_directories(wall_aligner_node PUBLIC include)
-target_link_libraries(wall_aligner_node ${OpenCV_LIBS})
 
 # map_alignment_checker_node
 add_executable(map_alignment_checker_node

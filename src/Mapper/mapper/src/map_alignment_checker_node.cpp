@@ -10,6 +10,11 @@ MapAlignmentCheckerNode::MapAlignmentCheckerNode(
 {
     using namespace std::placeholders;
 
+    // C1: 파라미터 선언 및 로드
+    hough_threshold_       = static_cast<int>(declare_parameter("hough_threshold", 50));
+    hough_min_line_length_ = declare_parameter("hough_min_line_length", 20.0);
+    hough_max_line_gap_    = declare_parameter("hough_max_line_gap", 5.0);
+
     // /map QoS: RELIABLE + TRANSIENT_LOCAL (OGM 표준)
     auto map_qos = rclcpp::QoS(3)
         .reliable()
