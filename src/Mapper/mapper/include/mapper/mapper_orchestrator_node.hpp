@@ -43,7 +43,7 @@ public:
 
 private:
     std::atomic<MapperState> state_{MapperState::IDLE};
-    MapperState previous_state_{MapperState::IDLE};
+    std::atomic<MapperState> previous_state_{MapperState::IDLE};
     std::mutex  state_mutex_;
     int align_retry_count_{0};
 

@@ -49,7 +49,7 @@ void MapperOrchestratorNode::log(const std::string & msg) {
 void MapperOrchestratorNode::publish_status() {
     mapper_interfaces::msg::MapperStatus status;
     status.state                   = static_cast<uint8_t>(state_.load());
-    status.previous_state          = static_cast<uint8_t>(previous_state_);
+    status.previous_state          = static_cast<uint8_t>(previous_state_.load());
     status.coverage_percent        = coverage_percent_;
     status.current_heading_error_deg = heading_error_deg_;
     {
@@ -87,7 +87,7 @@ void MapperOrchestratorNode::handle_command(
         if (state == MapperState::MAPPING_MANUAL ||
             state == MapperState::MAPPING_AUTO ||
             state == MapperState::EXPLORING_UNKNOWN) {
-            previous_state_ = state;
+            previous_state_.store(state);
             transition_to(MapperState::PAUSED);
             res->success = true;
             res->message = "Paused";
@@ -99,7 +99,7 @@ void MapperOrchestratorNode::handle_command(
 
     case Cmd::CMD_RESUME:
         if (state == MapperState::PAUSED) {
-            auto prev = previous_state_;
+            auto prev = previous_state_.load();
             transition_to(prev);
             if (prev == MapperState::MAPPING_MANUAL)
                 std::thread([this]{ run_mapping_manual(); }).detach();
