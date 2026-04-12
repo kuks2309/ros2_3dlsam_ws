@@ -1,0 +1,12 @@
+local_odd_costmap_generator_node:
+  ros__parameters:
+    path_topic: "/planned_path"
+    output_topic: "/odd_local_costmap"
+    grid_width: 20.0
+    grid_height: 20.0
+    resolution: 0.1
+    default_path_width: 1.5
+    free_value: 0
+    occupied_value: 100
+    publish_rate: 1.0
+    frame_id: "map"

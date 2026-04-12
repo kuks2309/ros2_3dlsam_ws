@@ -1,0 +1,17 @@
+odd_costmap_generator_node:
+  ros__parameters:
+    # Grid settings — 100x100m Gazebo world, Pioneer 2DX 기준
+    grid_width: 100.0           # (m) map width
+    grid_height: 100.0          # (m) map height
+    resolution: 0.2             # (m/cell) → 500 x 500 grid
+    origin_x: -50.0             # (m) grid origin X (map center at 0,0)
+    origin_y: -50.0             # (m) grid origin Y
+    frame_id: "map"
+
+    # Corridor settings — Pioneer 2DX (0.445m wide)에 맞게 조정
+    default_path_width: 1.2     # (m) default corridor width (원본 1.5 → 축소)
+    free_value: 0               # corridor interior cell value
+    occupied_value: 100         # corridor exterior cell value
+
+    # Publish settings
+    publish_rate: 1.0           # (Hz)

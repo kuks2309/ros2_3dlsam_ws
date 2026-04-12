@@ -1,0 +1,14 @@
+local_odd_generator_node:
+  ros__parameters:
+    # odd_file: ""  # Phase 2에서 edge_odd.yaml 파서 추가 예정
+    path_topic: "/planned_path"
+    graph_topic: "/route_graph/graph"
+    output_topic: "/local_odd/map"
+    frame_id: "map"
+    publish_rate: 1.0
+    snap_threshold: 0.75
+    defaults:
+      speed_limit: 0.30
+      accel_limit: 0.50
+      decel_limit: 1.00
+      path_width: 1.5

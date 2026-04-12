@@ -1,0 +1,10 @@
+route_graph_builder_node:
+  ros__parameters:
+    waypoint_file: ""       # path to ACS Job File (.txt)
+    edge_file: ""           # path to edge definition file (.txt)
+    frame_id: "map"
+    marker_publish_rate: 1.0        # Hz
+    node_marker_scale: 0.2          # m (sphere diameter)
+    edge_marker_width: 0.05         # m (line width)
+    text_scale: 0.15                # m (text height)
+    text_offset_z: 0.25             # m (text above node)

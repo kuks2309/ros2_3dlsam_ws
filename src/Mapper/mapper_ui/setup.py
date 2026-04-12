@@ -14,6 +14,7 @@ setup(
         (os.path.join('share', package_name, 'ui'), glob('ui/*.ui')),
     ],
     install_requires=['setuptools'],
+    zip_safe=True,
     entry_points={
         'console_scripts': [
             'mapper_ui_node = mapper_ui.mapper_ui_node:main',

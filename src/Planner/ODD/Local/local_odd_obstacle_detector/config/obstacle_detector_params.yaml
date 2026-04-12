@@ -1,0 +1,20 @@
+local_odd_obstacle_detector_node:
+  ros__parameters:
+    costmap_topic: "/odd_local_costmap"
+    scan_topic: "/scan_merged"
+    status_topic: "/corridor_obstacle_status"
+    marker_topic: "/corridor_obstacles"
+    map_frame: "map"
+    base_frame: "base_link"
+    tf_timeout_sec: 0.1
+    max_range: 10.0
+    min_obstacle_points: 3
+    blocked_threshold: 10
+    free_value: 0
+    hysteresis_margin: 1.0
+    check_rate: 10.0
+    # Forward detection box (scan/robot frame)
+    # Only detect obstacles ahead of the robot within the ODD corridor
+    forward_min_dist: 0.3    # ignore returns closer than this [m]
+    forward_max_dist: 3.0    # lookahead distance [m]
+    forward_half_width: 0.6  # lateral half-width of detection box [m] (< corridor half-width 0.75m)
