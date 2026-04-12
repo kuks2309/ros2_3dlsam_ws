@@ -1,0 +1,20 @@
+# Large Scale Warehouse Multi-Stop — 10m+ intervals
+# Format: Type  X(m)  Y(m)  Yaw(deg)  Timeout(sec)  DriveMode  TurnRadius  Speed
+# Aisle width: 10m spacing, run length: 15m
+# Route: (0,0)→Station A(10,0)→Station B(10,15)→Station C(0,15)→Home(0,0)
+# 10m @ 0.3m/s = 33s → 100s | 15m @ 0.3m/s = 50s → 150s
+
+# Station A: (10,0) — pickup 1
+AMR   10.0    0.0    0    100.0   AUTO   0.0   0.3
+AMR   10.0    0.0    0     10.0   WAIT   0.0   3.0
+
+# Station B: (10,15) — pickup 2
+AMR   10.0   15.0   90    150.0   AUTO   0.0   0.3
+AMR   10.0   15.0   90     10.0   WAIT   0.0   3.0
+
+# Station C: (0,15) — delivery
+AMR    0.0   15.0  180    100.0   AUTO   0.0   0.3
+AMR    0.0   15.0  180     10.0   WAIT   0.0   3.0
+
+# Home: (0,0)
+AMR    0.0    0.0  270    150.0   AUTO   0.0   0.3

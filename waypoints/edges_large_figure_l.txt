@@ -1,0 +1,4 @@
+# Edge file for job_large_figure_l.txt
+# Format: from_id  to_id  bidirectional(0/1)  path_width(m)
+# Nodes: 0:(20,0) 1:(20,15) — L-shape corner connection
+0  1  0  2.0

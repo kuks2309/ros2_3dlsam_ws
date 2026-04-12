@@ -1,0 +1,9 @@
+# Large Scale Straight — 25m out and back
+# Format: Type  X(m)  Y(m)  Yaw(deg)  Timeout(sec)  DriveMode  TurnRadius  Speed
+# 25m @ 0.4m/s = 63s → 190s
+
+# Go 25m east
+AMR   25.0   0.0    0    190.0   TRANSLATE   0.0   0.4
+
+# Return 25m west
+AMR    0.0   0.0  180    190.0   TRANSLATE   0.0   0.4

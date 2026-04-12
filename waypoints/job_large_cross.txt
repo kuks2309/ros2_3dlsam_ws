@@ -1,0 +1,17 @@
+# Large Scale Cross/T-Junction — 20m arms
+# Format: Type  X(m)  Y(m)  Yaw(deg)  Timeout(sec)  DriveMode  TurnRadius  Speed
+# Tests navigating a cross junction with 20m arms
+# Route: center(0,0) → east(20,0) → back(0,0) → north(0,20) → back(0,0)
+# 20m @ 0.4m/s = 50s → 150s
+
+# Arm 1: east 20m
+AMR   20.0    0.0    0    150.0   AUTO   0.0   0.4
+
+# Return to center
+AMR    0.0    0.0  180    150.0   AUTO   0.0   0.4
+
+# Arm 2: north 20m
+AMR    0.0   20.0   90    150.0   AUTO   0.0   0.4
+
+# Return to center
+AMR    0.0    0.0  270    150.0   AUTO   0.0   0.4

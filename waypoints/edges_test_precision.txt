@@ -1,0 +1,17 @@
+# Edge file for job_test_precision.txt
+# Format: from_id  to_id  bidirectional(0=uni/1=bi)  path_width(m)
+# Nodes:
+#   0: (1.0, 0.0) AUTO   — grid row 1 step 1
+#   1: (2.0, 0.0) AUTO   — grid row 1 step 2
+#   2: (2.0, 0.0) WAIT   [degenerate — precision stop at (2,0)]
+#   3: (2.0, 1.0) AUTO   — turn north
+#   4: (1.0, 1.0) AUTO   — grid row 2 step 1
+#   5: (0.0, 1.0) AUTO   — grid row 2 step 2
+#   6: (0.0, 2.0) AUTO   — finish
+# Narrower path_width (1.0m) reflects tight precision grid navigation
+0  1  0  1.0
+1  2  0  1.0
+2  3  0  1.0
+3  4  0  1.0
+4  5  0  1.0
+5  6  0  1.0

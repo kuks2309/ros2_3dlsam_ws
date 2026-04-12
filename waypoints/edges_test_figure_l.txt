@@ -1,0 +1,8 @@
+# Edge file for job_test_figure_l.txt
+# Format: from_id  to_id  bidirectional(0=uni/1=bi)  path_width(m)
+# Nodes:
+#   0: (6.0, 0.0) AUTO  — horizontal corridor end (corner)
+#   1: (6.0, 4.0) AUTO  — vertical corridor end
+# L-shape: horizontal (0,0→6,0) then vertical (6,0→6,4)
+# Note: spawn→node 0 leg is implicit (outside ODD graph scope)
+0  1  0  1.2

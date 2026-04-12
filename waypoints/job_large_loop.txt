@@ -1,0 +1,19 @@
+# Large Scale Loop Test — 15x20m CCW rectangle
+# Format: Type  X(m)  Y(m)  Yaw(deg)  Timeout(sec)  DriveMode  TurnRadius  Speed
+# Timeout = distance/speed * 3 safety factor
+# 15m @ 0.4m/s = 38s → 120s | 20m @ 0.4m/s = 50s → 150s
+
+# Leg 1: east 15m → (15,0)
+AMR   15.0    0.0    0    120.0   AUTO   0.0   0.4
+
+# Leg 2: north 20m → (15,20)
+AMR   15.0   20.0   90    150.0   AUTO   0.0   0.4
+
+# Leg 3: west 15m → (0,20)
+AMR    0.0   20.0  180    120.0   AUTO   0.0   0.4
+
+# Leg 4: south 20m → (0,0)
+AMR    0.0    0.0  270    150.0   AUTO   0.0   0.4
+
+# Close: spin to face east
+AMR    0.0    0.0    0     30.0   SPIN   0.0   0.4

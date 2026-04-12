@@ -1,0 +1,7 @@
+# Edge file for job_test_straight.txt
+# Format: from_id  to_id  bidirectional(0=uni/1=bi)  path_width(m)
+# Nodes:
+#   0: (5.0, 0.0) TRANSLATE — forward endpoint
+#   1: (0.0, 0.0) TRANSLATE — return to origin
+# Bidirectional (1): robot traverses this exact segment twice (out and back)
+0  1  1  1.2

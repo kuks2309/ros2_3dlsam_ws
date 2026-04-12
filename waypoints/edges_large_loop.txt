@@ -1,0 +1,9 @@
+# Edge file for job_large_loop.txt
+# Format: from_id  to_id  bidirectional(0/1)  path_width(m)
+# Nodes: 0:(15,0) 1:(15,20) 2:(0,20) 3:(0,0) 4:(0,0 SPIN)
+# 15x20m CCW rectangle — path_width=2.0m for visibility
+0  1  0  2.0
+1  2  0  2.0
+2  3  0  2.0
+3  4  0  2.0
+4  0  0  2.0

@@ -1,0 +1,9 @@
+# Large Scale L-Shape — 20m horizontal + 15m vertical
+# Format: Type  X(m)  Y(m)  Yaw(deg)  Timeout(sec)  DriveMode  TurnRadius  Speed
+# 20m @ 0.4m/s = 50s → 150s | 15m @ 0.4m/s = 38s → 120s
+
+# Leg 1: east 20m to corner (20,0)
+AMR   20.0    0.0    0    150.0   AUTO   0.0   0.4
+
+# Leg 2: north 15m to end (20,15)
+AMR   20.0   15.0   90    120.0   AUTO   0.0   0.4

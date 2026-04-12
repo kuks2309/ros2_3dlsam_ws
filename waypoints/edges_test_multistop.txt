@@ -1,0 +1,16 @@
+# Edge file for job_test_multistop.txt
+# Format: from_id  to_id  bidirectional(0=uni/1=bi)  path_width(m)
+# Nodes:
+#   0: (2.0, 0.0) AUTO   — Station A arrive
+#   1: (2.0, 0.0) WAIT   [degenerate — same pos as node 0, pickup pause]
+#   2: (2.0, 3.0) AUTO   — Station B arrive
+#   3: (2.0, 3.0) WAIT   [degenerate — same pos as node 2, pickup pause]
+#   4: (0.0, 3.0) AUTO   — Station C arrive
+#   5: (0.0, 3.0) WAIT   [degenerate — same pos as node 4, delivery pause]
+#   6: (0.0, 0.0) AUTO   — Home base
+0  1  0  1.2
+1  2  0  1.2
+2  3  0  1.2
+3  4  0  1.2
+4  5  0  1.2
+5  6  0  1.2

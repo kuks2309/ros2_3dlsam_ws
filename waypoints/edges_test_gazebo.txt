@@ -1,0 +1,15 @@
+# Route Graph Edge Definition File — job_test_gazebo.txt 기준
+# Format: from_node_id  to_node_id  bidirectional(0/1)  [path_width_m]
+# Nodes (0-indexed):
+#   0: (2.0,  0.0, 0deg)  AUTO
+#   1: (2.0,  0.0, 0deg)  WAIT
+#   2: (2.0,  2.0, 90deg) AUTO
+#   3: (0.0,  2.0, 180deg) AUTO
+#   4: (0.0,  0.0, 270deg) AUTO
+#
+# Square loop: 0→1→2→3→4→0
+0  1  0  1.2
+1  2  0  1.2
+2  3  0  1.2
+3  4  0  1.2
+4  0  0  1.2

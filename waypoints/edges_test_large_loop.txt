@@ -1,0 +1,14 @@
+# Edge file for job_test_large_loop.txt
+# Format: from_id  to_id  bidirectional(0=uni/1=bi)  path_width(m)
+# Nodes:
+#   0: (1.5, 0.0) AUTO   — east leg
+#   1: (1.5, 3.0) AUTO   — north leg
+#   2: (0.0, 3.0) AUTO   — west leg
+#   3: (0.0, 0.0) AUTO   — south leg (home)
+#   4: (0.0, 0.0) SPIN   [degenerate — same pos as node 3, realigns heading to east]
+# 1.5x3m CCW rectangle loop — node 4 closes back to node 0
+0  1  0  1.2
+1  2  0  1.2
+2  3  0  1.2
+3  4  0  1.2
+4  0  0  1.2
