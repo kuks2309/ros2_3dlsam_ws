@@ -11,6 +11,8 @@
 #include <mutex>
 #include <thread>
 #include <functional>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
 
 namespace mapper {
 
@@ -61,6 +63,9 @@ private:
     std::atomic<uint8_t> slam_mode_{0};
     std::atomic<uint8_t> drive_mode_{0};
     double start_x_{0.0}, start_y_{0.0};
+
+    std::shared_ptr<tf2_ros::Buffer>            tf_buffer_;
+    std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
 
     rclcpp::Service<mapper_interfaces::srv::MapperCommand>::SharedPtr cmd_service_;
     rclcpp::Publisher<mapper_interfaces::msg::MapperStatus>::SharedPtr status_pub_;

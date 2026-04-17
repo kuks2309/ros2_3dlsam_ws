@@ -44,6 +44,9 @@ MapperOrchestratorNode::MapperOrchestratorNode(
     status_timer_ = create_wall_timer(
         std::chrono::milliseconds(100),
         std::bind(&MapperOrchestratorNode::publish_status, this));
+
+    tf_buffer_   = std::make_shared<tf2_ros::Buffer>(get_clock());
+    tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 }
 
 MapperOrchestratorNode::~MapperOrchestratorNode() {
@@ -345,6 +348,19 @@ void MapperOrchestratorNode::run_starting_slam() {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
         if (state_.load() == MapperState::IDLE) return;
+    }
+
+    // 로봇 시작 위치 기록 (루프 클로저 복귀용)
+    try {
+        auto tf = tf_buffer_->lookupTransform(
+            "map", "base_link", tf2::TimePointZero,
+            tf2::durationFromSec(1.0));
+        start_x_ = tf.transform.translation.x;
+        start_y_ = tf.transform.translation.y;
+        RCLCPP_INFO(get_logger(), "Start position recorded: (%.2f, %.2f)",
+            start_x_, start_y_);
+    } catch (const tf2::TransformException & ex) {
+        RCLCPP_WARN(get_logger(), "Could not record start position: %s", ex.what());
     }
 
     transition_to(MapperState::VERIFYING_MAP);
