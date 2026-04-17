@@ -58,9 +58,10 @@ MapperOrchestratorNode::~MapperOrchestratorNode() {
 
 void MapperOrchestratorNode::launch_worker(std::function<void()> fn) {
     active_workers_.fetch_add(1);
-    std::thread([this, fn = std::move(fn)] {
+    auto self = std::static_pointer_cast<MapperOrchestratorNode>(shared_from_this());
+    std::thread([self, fn = std::move(fn)] {
         fn();
-        active_workers_.fetch_sub(1);
+        self->active_workers_.fetch_sub(1);
     }).detach();
 }
 
