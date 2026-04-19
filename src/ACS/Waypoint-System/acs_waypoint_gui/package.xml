@@ -10,6 +10,9 @@
   <exec_depend>waypoint_interfaces</exec_depend>
   <exec_depend>tf2_ros_py</exec_depend>
   <exec_depend>python3-pyqt5</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>
