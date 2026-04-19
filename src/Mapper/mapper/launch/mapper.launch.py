@@ -16,6 +16,14 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('use_sim_time', default_value='false'),
 
+        # 신규: Hough 기반 벽 탐지 노드 (wall_aligner의 입력 퍼블리셔)
+        Node(
+            package='wall_detector',
+            executable='wall_detector_node',
+            name='wall_detector',
+            parameters=[{'use_sim_time': use_sim_time}],
+            output='screen',
+        ),
         Node(
             package='mapper',
             executable='wall_aligner_node',
