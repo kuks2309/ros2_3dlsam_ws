@@ -12,10 +12,15 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from rclpy.qos import QoSProfile, QoSDurabilityPolicy, QoSReliabilityPolicy
 
 from waypoint_interfaces.action import WaypointMission
 from waypoint_interfaces.msg import Waypoint
 from waypoint_interfaces.srv import PauseMission
+
+from visualization_msgs.msg import Marker, MarkerArray
+from std_msgs.msg import ColorRGBA
+from geometry_msgs.msg import Point
 
 import tf2_ros
 
@@ -31,6 +36,21 @@ _DRIVE_MODE_NAMES = {v: k for k, v in _DRIVE_MODE_MAP.items()}
 
 _WP_COLUMNS = ['ID', 'Type', 'X', 'Y', 'Heading', 'DriveMode',
                'Speed', 'Radius', 'Status', 'Time', 'Error']
+
+# Frame used to publish waypoint markers. With the default (no-SLAM) launch
+# a static TF map->odom=identity exists, so `map` renders correctly whether
+# RViz uses `map` or `odom` as its Fixed Frame.
+_MARKER_FRAME_ID = 'map'
+_MARKER_NS_WP = 'acs_waypoints'
+_MARKER_NS_PATH = 'acs_waypoint_path'
+_MARKER_NS_TEXT = 'acs_waypoint_labels'
+
+_DRIVE_MODE_COLORS = {
+    'AUTO':      (0.0, 1.0, 0.0, 0.9),   # green
+    'SPIN':      (1.0, 0.3, 0.0, 0.9),   # orange-red
+    'TRANSLATE': (0.2, 0.4, 1.0, 0.9),   # blue
+    'YAWCTRL':   (1.0, 1.0, 0.0, 0.9),   # yellow
+}
 
 
 # ---------------------------------------------------------------------------
@@ -56,8 +76,102 @@ class AcsGuiRosNode(Node):
         self._tf_buffer = tf2_ros.Buffer()
         self._tf_listener = tf2_ros.TransformListener(self._tf_buffer, self)
 
+        # Waypoint marker publisher (latched so RViz picks up the last
+        # published MarkerArray even if it subscribes after the publish).
+        marker_qos = QoSProfile(
+            depth=1,
+            reliability=QoSReliabilityPolicy.RELIABLE,
+            durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
+        )
+        self._marker_pub = self.create_publisher(
+            MarkerArray, '/acs_waypoints', marker_qos)
+
         self._goal_handle = None
         self._perf_log = None
+
+    def publish_waypoints(self, entries):
+        """Publish waypoint MarkerArray for RViz visualization.
+
+        entries: iterable of (typ, x, y, yaw_deg, timeout, dm_str, turn_r, speed)
+                 (same shape returned by parse_job_file).
+        Empty/None entries produces a DELETEALL marker so RViz clears stale
+        markers when the user loads an empty plan.
+        """
+        arr = MarkerArray()
+        # Clear previous markers first (single DELETEALL marker at index 0).
+        clear = Marker()
+        clear.header.frame_id = _MARKER_FRAME_ID
+        clear.header.stamp = self.get_clock().now().to_msg()
+        clear.action = Marker.DELETEALL
+        arr.markers.append(clear)
+
+        entries = list(entries or [])
+        now = self.get_clock().now().to_msg()
+
+        # Connecting path (LINE_STRIP) — single marker with all points.
+        if len(entries) >= 2:
+            path = Marker()
+            path.header.frame_id = _MARKER_FRAME_ID
+            path.header.stamp = now
+            path.ns = _MARKER_NS_PATH
+            path.id = 0
+            path.type = Marker.LINE_STRIP
+            path.action = Marker.ADD
+            path.scale.x = 0.05   # line thickness (m)
+            path.color = ColorRGBA(r=1.0, g=1.0, b=1.0, a=0.6)
+            for _, x, y, _yaw, _to, _dm, _tr, _spd in entries:
+                p = Point()
+                p.x = float(x)
+                p.y = float(y)
+                p.z = 0.02
+                path.points.append(p)
+            path.pose.orientation.w = 1.0
+            arr.markers.append(path)
+
+        # Per-waypoint arrow + text label.
+        for i, (_typ, x, y, yaw_deg, _to, dm_str, _tr, _spd) in enumerate(entries):
+            yaw_rad = math.radians(float(yaw_deg))
+            color = _DRIVE_MODE_COLORS.get(str(dm_str).upper(),
+                                           (0.8, 0.8, 0.8, 0.9))
+
+            arrow = Marker()
+            arrow.header.frame_id = _MARKER_FRAME_ID
+            arrow.header.stamp = now
+            arrow.ns = _MARKER_NS_WP
+            arrow.id = i
+            arrow.type = Marker.ARROW
+            arrow.action = Marker.ADD
+            arrow.pose.position.x = float(x)
+            arrow.pose.position.y = float(y)
+            arrow.pose.position.z = 0.05
+            arrow.pose.orientation.z = math.sin(yaw_rad / 2.0)
+            arrow.pose.orientation.w = math.cos(yaw_rad / 2.0)
+            arrow.scale.x = 0.4    # arrow length
+            arrow.scale.y = 0.08   # shaft diameter
+            arrow.scale.z = 0.08   # head diameter
+            arrow.color = ColorRGBA(r=color[0], g=color[1],
+                                    b=color[2], a=color[3])
+            arr.markers.append(arrow)
+
+            label = Marker()
+            label.header.frame_id = _MARKER_FRAME_ID
+            label.header.stamp = now
+            label.ns = _MARKER_NS_TEXT
+            label.id = i
+            label.type = Marker.TEXT_VIEW_FACING
+            label.action = Marker.ADD
+            label.pose.position.x = float(x)
+            label.pose.position.y = float(y)
+            label.pose.position.z = 0.35
+            label.pose.orientation.w = 1.0
+            label.scale.z = 0.25   # text height
+            label.color = ColorRGBA(r=1.0, g=1.0, b=1.0, a=1.0)
+            label.text = f'WP{i}:{str(dm_str).upper()}'
+            arr.markers.append(label)
+
+        self._marker_pub.publish(arr)
+        self.get_logger().info(
+            f'Published {len(entries)} waypoint markers on /acs_waypoints')
 
     def lookup_robot_pose(self):
         """Return (x, y, yaw_deg) or None."""
@@ -247,6 +361,12 @@ class AcsGuiDialog(QtWidgets.QDialog):
         for i, (typ, x, y, yaw_deg, timeout, dm_str, turn_r, speed) in enumerate(entries):
             self._add_table_row(i, typ, x, y, yaw_deg, dm_str, speed, turn_r)
         self._save_current_settings()
+        # Publish waypoint markers to RViz
+        try:
+            self._node.publish_waypoints(entries)
+        except Exception as e:
+            self._node.get_logger().warn(
+                f'publish_waypoints failed: {e}')
 
     def _on_save_job(self):
         path, _ = QtWidgets.QFileDialog.getSaveFileName(
