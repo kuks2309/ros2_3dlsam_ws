@@ -111,10 +111,12 @@ def generate_launch_description():
             # Localization 모드
             'Mem/IncrementalMemory': 'false',
             'Mem/InitWMWithAllNodes': 'true',
-            'RGBD/StartAtOrigin': 'true',
+            'RGBD/StartAtOrigin': 'false',
             # Loop closure / proximity
+            'RGBD/ProximityBySpace': 'true',
+            'RGBD/ProximityOdomGuess': 'true',
             'RGBD/ProximityMaxGraphDepth': '0',
-            'RGBD/ProximityPathMaxNeighbors': '1',
+            'RGBD/ProximityPathMaxNeighbors': '10',
             'RGBD/AngularUpdate': '0.05',
             'RGBD/LinearUpdate': '0.05',
             # Registration: ICP only
