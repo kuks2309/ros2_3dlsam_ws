@@ -1,10 +1,19 @@
+# Goal
 float64 tolerance_deg
 bool    use_imu_correction
 ---
+# Result
+# status 코드:
+#    0  = SUCCESS (정렬 완료)
+#   -1  = ABORT   (재시도 한계 초과 또는 일반 실패)
+#   -2  = REJECT  (잘못된 goal 파라미터)
+#   -3  = CANCEL  (사용자 취소)
+#   -4  = NO_WALL_DATA (wall_detector 메시지 미수신/신뢰도 부족)
 float64 aligned_heading
 int8    status
 float64 current_error_deg
 float64 wall_angle_deg
 ---
+# Feedback
 float64 current_error_deg
 float64 wall_angle_deg
