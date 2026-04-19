@@ -9,14 +9,20 @@ mapper_orchestrator:
 
 wall_aligner:
   ros__parameters:
+    # 정렬 동작 파라미터
     tolerance_deg: 0.2
-    max_attempts: 5
+    max_attempts: 10
     spin_speed_deg_s: 40.0
     spin_accel_deg_s2: 30.0
     spin_server: spin
-    inlier_dist_m: 0.05
-    min_inliers: 10
-    ransac_iterations: 200
+    cooldown_ms: 300.0           # Spin 완료 후 안정화 대기 (ms)
+    min_inlier_ratio: 0.3        # wall_detector inlier_ratio 최소 임계
+    wall_fresh_timeout_ms: 5000.0
+    wall_topic: wall_detector/longest_wall
+    reference_frame: odom        # 매핑 시작 전이라 map 없음
+    robot_frame: base_link
+    # 동일 벽 추적 (큰 각도 수렴 안정화)
+    wall_identity_tol_deg: 25.0  # 첫 검출 벽의 world 각도 ±tol 안의 벽만 채택
 
 map_alignment_checker:
   ros__parameters:
