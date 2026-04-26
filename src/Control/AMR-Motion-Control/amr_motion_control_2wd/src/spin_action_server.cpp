@@ -167,10 +167,15 @@ void SpinActionServer::execute(const std::shared_ptr<GoalHandle> goal_handle)
   }
 
   // -------------------------------------------------------------------------
-  // Get starting TF yaw
+  // Determine rotation delta (relative mode skips TF lookup entirely)
   // -------------------------------------------------------------------------
   double start_tf_yaw_deg = 0.0;
-  {
+  double delta_deg        = 0.0;
+
+  if (goal->relative) {
+    // Relative mode: target_angle is the delta itself — no TF, no frame dependency
+    delta_deg = normalizeAngle180(target_deg);
+  } else {
     int tf_retry = 0;
     while (!lookupTfYaw(tf_buffer_, start_tf_yaw_deg,
                         node_->get_logger(), node_->get_clock(), robot_base_frame_))
@@ -194,17 +199,14 @@ void SpinActionServer::execute(const std::shared_ptr<GoalHandle> goal_handle)
       }
       std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
+    delta_deg = normalizeAngle180(target_deg - start_tf_yaw_deg);
   }
 
-  // -------------------------------------------------------------------------
-  // Compute rotation direction and angular distance
-  // -------------------------------------------------------------------------
-  double delta_deg = normalizeAngle180(target_deg - start_tf_yaw_deg);
   if (std::abs(delta_deg) < 0.1) {
     RCLCPP_INFO(node_->get_logger(),
       "[SpinActionServer] Already at target (delta=%.3f deg), success", delta_deg);
     result->status       = 0;
-    result->actual_angle = start_tf_yaw_deg;
+    result->actual_angle = goal->relative ? 0.0 : start_tf_yaw_deg;
     result->elapsed_time = (node_->now() - start_time).seconds();
     goal_handle->succeed(result);
     return;
@@ -242,10 +244,14 @@ void SpinActionServer::execute(const std::shared_ptr<GoalHandle> goal_handle)
       RCLCPP_INFO(node_->get_logger(), "[SpinActionServer] Cancelled");
       result->status       = -1;
       result->elapsed_time = (node_->now() - start_time).seconds();
-      double final_yaw_deg = 0.0;
-      if (lookupTfYaw(tf_buffer_, final_yaw_deg,
-                      node_->get_logger(), node_->get_clock(), robot_base_frame_)) {
-        result->actual_angle = final_yaw_deg;
+      if (goal->relative) {
+        result->actual_angle = sign * imu_accumulated_deg;
+      } else {
+        double final_yaw_deg = 0.0;
+        if (lookupTfYaw(tf_buffer_, final_yaw_deg,
+                        node_->get_logger(), node_->get_clock(), robot_base_frame_)) {
+          result->actual_angle = final_yaw_deg;
+        }
       }
       goal_handle->canceled(result);
       return;
@@ -268,11 +274,15 @@ void SpinActionServer::execute(const std::shared_ptr<GoalHandle> goal_handle)
     cmd.angular.z = sign * speed_dps * M_PI / 180.0;
     cmd_vel_pub_->publish(cmd);
 
-    // Feedback
-    double current_tf_yaw = 0.0;
-    if (lookupTfYaw(tf_buffer_, current_tf_yaw,
-                    node_->get_logger(), node_->get_clock(), robot_base_frame_)) {
-      feedback->current_angle = current_tf_yaw;
+    // Feedback — relative mode reports accumulated rotation (no TF needed)
+    if (goal->relative) {
+      feedback->current_angle = sign * imu_accumulated_deg;
+    } else {
+      double current_tf_yaw = 0.0;
+      if (lookupTfYaw(tf_buffer_, current_tf_yaw,
+                      node_->get_logger(), node_->get_clock(), robot_base_frame_)) {
+        feedback->current_angle = current_tf_yaw;
+      }
     }
     feedback->current_speed = speed_dps * sign;
     feedback->phase         = static_cast<uint8_t>(profile_out.phase);
@@ -297,10 +307,10 @@ void SpinActionServer::execute(const std::shared_ptr<GoalHandle> goal_handle)
   }
 
   // -------------------------------------------------------------------------
-  // Fine correction loop
+  // Fine correction loop — only in absolute-yaw mode (relative uses IMU only)
   // -------------------------------------------------------------------------
   double final_tf_yaw = 0.0;
-  bool got_final_tf = lookupTfYaw(tf_buffer_, final_tf_yaw,
+  bool got_final_tf = !goal->relative && lookupTfYaw(tf_buffer_, final_tf_yaw,
                                    node_->get_logger(), node_->get_clock(), robot_base_frame_);
 
   if (got_final_tf) {
@@ -368,7 +378,7 @@ void SpinActionServer::execute(const std::shared_ptr<GoalHandle> goal_handle)
   }
 
   result->status       = 0;
-  result->actual_angle = final_tf_yaw;
+  result->actual_angle = goal->relative ? sign * imu_accumulated_deg : final_tf_yaw;
   result->elapsed_time = (node_->now() - start_time).seconds();
 
   RCLCPP_INFO(node_->get_logger(),
