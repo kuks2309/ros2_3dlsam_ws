@@ -21,7 +21,7 @@ def generate_launch_description():
             package='wall_detector',
             executable='wall_detector_node',
             name='wall_detector',
-            parameters=[{'use_sim_time': use_sim_time}],
+            parameters=[params_file, {'use_sim_time': use_sim_time}],
             output='screen',
         ),
         Node(

@@ -4,11 +4,8 @@
 #include <mapper_interfaces/action/wall_align.hpp>
 #include <mapper_interfaces/msg/longest_wall.hpp>
 #include <amr_interfaces/action/amr_motion_spin.hpp>
-#include <tf2_ros/buffer.h>
-#include <tf2_ros/transform_listener.h>
 #include <atomic>
 #include <mutex>
-#include <optional>
 
 namespace mapper {
 
@@ -50,10 +47,6 @@ private:
     rclcpp::CallbackGroup::SharedPtr spin_cb_group_;
     rclcpp::CallbackGroup::SharedPtr server_cb_group_;
 
-    // ── TF ────────────────────────────────────────────────────────
-    std::shared_ptr<tf2_ros::Buffer>            tf_buffer_;
-    std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
-
     // ── 파라미터 ──────────────────────────────────────────────────
     double tolerance_deg_{0.2};
     int    max_attempts_{10};
@@ -62,11 +55,10 @@ private:
     double cooldown_ms_{300.0};
     double min_inlier_ratio_{0.3};
     double wall_fresh_timeout_ms_{5000.0};
-    double wall_identity_tol_deg_{25.0};
+    double min_wall_length_m_{0.0};    // 외벽/선반 분리 임계
+    double min_wall_distance_m_{0.0};  // 근거리 선반 제외
     std::string spin_server_name_{"spin"};
     std::string wall_topic_{"wall_detector/longest_wall"};
-    std::string reference_frame_{"odom"};
-    std::string robot_frame_{"base_link"};
 
     // ── 핸들러 ────────────────────────────────────────────────────
     rclcpp_action::GoalResponse handle_goal(
@@ -81,9 +73,7 @@ private:
     // ── 유틸 ──────────────────────────────────────────────────────
     void on_wall_msg(LongestWallMsg::SharedPtr msg);
     LongestWallMsg::SharedPtr wait_fresh_wall_locked(
-        rclcpp::Time after_time, double timeout_ms,
-        std::optional<double> world_lock_deg = std::nullopt);
-    double get_robot_yaw_deg();
+        rclcpp::Time after_time, double timeout_ms);
 
     // Spin 관련 — 결과 코드 명시 enum 반환
     enum class SpinOutcome { SUCCESS, CANCELLED, FAILED };
