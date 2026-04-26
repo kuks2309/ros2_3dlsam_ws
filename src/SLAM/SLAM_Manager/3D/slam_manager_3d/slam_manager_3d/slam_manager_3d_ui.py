@@ -13,12 +13,13 @@ import os
 import signal
 import time
 import subprocess
+import threading
 import math
 from pathlib import Path
 from datetime import datetime
 
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtCore import QTimer, QDateTime
+from PyQt5.QtCore import QTimer, QDateTime, pyqtSignal
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from ament_index_python.packages import get_package_share_directory
 
@@ -36,12 +37,18 @@ def get_workspace_path():
 class SlamManager3DUI(QtWidgets.QMainWindow):
     """PyQt5 Main Window for 3D SLAM Manager"""
 
+    # Thread-safe log signal — worker thread 에서 emit, main thread 의 self.log 로 전달
+    log_signal = pyqtSignal(str)
+
     def __init__(self):
         super().__init__()
 
         # Load UI file
         ui_file = Path(__file__).parent / 'ui' / 'slam_manager_3d.ui'
         uic.loadUi(ui_file, self)
+
+        # Cross-thread log: worker 에서 log_signal.emit(msg) 로 호출
+        self.log_signal.connect(self.log)
 
         # ROS2 node (will be set later)
         self.node = None
@@ -862,26 +869,88 @@ class SlamManager3DUI(QtWidgets.QMainWindow):
         return True
 
     def _schedule_global_map_publish(self, service_name='/rtabmap/rtabmap/publish_map',
-                                      delay_ms=4000):
-        """Localization 기동 후 지연 시간을 두고 global_map=true 로 publish_map 서비스를 호출.
+                                      initial_delay_s=2.0,
+                                      service_wait_timeout_s=60.0,
+                                      call_timeout_s=60.0):
+        """Localization 기동 후 publish_map 서비스를 호출하여 LTM 전체 맵을 발행.
 
         기본 /rtabmap/cloud_map 발행은 WM(Working Memory) 서브셋만 포함한다.
         DB 에 저장된 LTM(Long-Term Memory) 전체 노드를 포함시키려면
         publish_map 을 global_map=true 로 명시 호출해야 한다.
-        QTimer.singleShot 으로 rtabmap 이 올라온 뒤 1회 비동기 호출.
+
+        rtabmap 기동 시간이 가변(DB 크기, 시스템 상태)이므로
+        백그라운드 스레드에서 서비스가 등장할 때까지 폴링한 뒤 호출하여
+        기존 fire-and-forget Popen 방식의 silent failure 를 방지한다.
         """
-        def _call():
+        def _emit(msg, level='info'):
+            """UI(log_signal) + ROS logger 양쪽으로 기록."""
+            self.log_signal.emit(msg)
+            if self.node:
+                logger = self.node.get_logger()
+                if level == 'error':
+                    logger.error(msg)
+                elif level == 'warn':
+                    logger.warn(msg)
+                else:
+                    logger.info(msg)
+
+        def _worker():
+            time.sleep(initial_delay_s)
+
+            start = time.time()
+            service_available = False
+            while time.time() - start < service_wait_timeout_s:
+                try:
+                    result = subprocess.run(
+                        ['ros2', 'service', 'list'],
+                        capture_output=True, text=True, timeout=5
+                    )
+                    if result.returncode == 0 and service_name in result.stdout.split():
+                        service_available = True
+                        break
+                except Exception:
+                    pass
+                time.sleep(1.0)
+
+            if not service_available:
+                _emit(
+                    f"publish_map service NOT available after "
+                    f"{service_wait_timeout_s}s: {service_name}",
+                    level='error',
+                )
+                return
+
+            elapsed = time.time() - start
+            _emit(f"publish_map service detected after {elapsed:.1f}s, calling...")
+
             try:
-                subprocess.Popen(
+                result = subprocess.run(
                     ['ros2', 'service', 'call', service_name,
                      'rtabmap_msgs/srv/PublishMap',
                      "{optimized: true, graph_only: false, global_map: true}"],
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                    capture_output=True, text=True, timeout=call_timeout_s
                 )
-                self.log(f"Scheduled global map publish: {service_name}")
+                if result.returncode == 0:
+                    _emit(f"publish_map call SUCCEEDED: {service_name}")
+                else:
+                    err = (result.stderr.strip() or result.stdout.strip())[:300]
+                    _emit(
+                        f"publish_map call FAILED (rc={result.returncode}): {err}",
+                        level='error',
+                    )
+            except subprocess.TimeoutExpired:
+                _emit(
+                    f"publish_map call TIMED OUT after {call_timeout_s}s",
+                    level='error',
+                )
             except Exception as e:
-                self.log(f"publish_map call failed: {e}")
-        QTimer.singleShot(delay_ms, _call)
+                _emit(f"publish_map call ERROR: {e}", level='error')
+
+        threading.Thread(target=_worker, daemon=True).start()
+        self.log(
+            f"publish_map scheduled (waits up to "
+            f"{service_wait_timeout_s:.0f}s for service)"
+        )
 
     def _prepare_map_for_localization(self, map_path):
         """Copy map to default RTAB-Map location and clear stale opt_* caches.
@@ -889,11 +958,38 @@ class SlamManager3DUI(QtWidgets.QMainWindow):
         rtabmap은 Admin.opt_map/opt_cloud/opt_poses 캐시를 latched 로 먼저 발행하므로,
         구버전 캐시가 남아있으면 RViz에 옛 맵이 고정되어 per-node grid 재조립이 반영되지 않는다.
         매 기동마다 캐시를 NULL 로 비워 rtabmap 이 새로 어셈블하도록 강제한다.
+
+        기존 ~/.ros/rtabmap.db 는 먼저 삭제(unlink) 후 복사하여
+        이전 세션의 잔여 파일이 copy2 의 덮어쓰기에 섞이는 상황을 방지한다.
+        (이전 rtabmap 프로세스가 파일 핸들을 유지 중이어도 unlink 는 성공하며,
+         새 파일은 새 inode 로 생성된다.)
         """
         import shutil
         import sqlite3
+        import os
         default_db = Path.home() / ".ros" / "rtabmap.db"
-        shutil.copy2(map_path, str(default_db))
+
+        # 1) Delete existing to avoid partial-overwrite / stale-file risk
+        if default_db.exists():
+            try:
+                old_size = default_db.stat().st_size
+                default_db.unlink()
+                self.log(f"Removed existing {default_db} ({old_size:,}B)")
+            except Exception as e:
+                self.log(f"Could not remove existing DB: {e}")
+
+        # 2) Copy (use copyfile not copy2 — preserve content only, fresh mtime)
+        src_size = os.path.getsize(map_path)
+        shutil.copyfile(map_path, str(default_db))
+        dst_size = os.path.getsize(str(default_db))
+        if dst_size != src_size:
+            self.log(
+                f"WARNING: copy size mismatch — src={src_size:,}B dst={dst_size:,}B"
+            )
+            return
+        self.log(f"Copied {src_size:,}B → {default_db}")
+
+        # 3) Clear latched opt_* caches so rtabmap reassembles from per-node grids
         try:
             con = sqlite3.connect(str(default_db))
             cur = con.cursor()
@@ -901,11 +997,27 @@ class SlamManager3DUI(QtWidgets.QMainWindow):
                 "UPDATE Admin SET opt_cloud=NULL, opt_poses=NULL, opt_map=NULL, "
                 "opt_map_x_min=NULL, opt_map_y_min=NULL, opt_map_resolution=NULL"
             )
+            rows = cur.rowcount
+            # Sanity: how many nodes does this DB have?
+            cur.execute("SELECT COUNT(*) FROM Node")
+            node_count = cur.fetchone()[0]
             con.commit()
             con.close()
+            self.log(
+                f"opt_* caches cleared ({rows} Admin rows); DB has {node_count} nodes"
+            )
+            # Warn if DB is too sparse to be a usable map
+            if node_count < 50:
+                warn = (
+                    f"⚠ WARNING: selected map has only {node_count} keyframes — "
+                    f"too sparse for meaningful localization. "
+                    f"Likely an unfinished mapping session. "
+                    f"Pick a different .db file from the Browse dialog."
+                )
+                self.log(warn)
+                QMessageBox.warning(self, "Sparse Map Warning", warn)
         except Exception as e:
             self.log(f"opt_map cache clear skipped: {e}")
-        self.log(f"Map copied to: {default_db} (opt_* caches cleared)")
 
     def _save_rtabmap_db(self, prefix):
         """Save RTAB-Map database"""

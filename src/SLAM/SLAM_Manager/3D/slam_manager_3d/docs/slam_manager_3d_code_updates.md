@@ -43,9 +43,47 @@
   - `'rtabmap_3dlidar_loc': ('rtab_map_3d_config', 'rtabmap_3dlidar_only_localization_gazebo.launch.py')`
 - **검증**: colcon 빌드 OK. Gazebo 미기동 상태에서도 3D LiDAR 탭 버튼이 활성화되어 localization 기동 가능.
 
+## 2026-04-19
+
+### Issue #4: Localization 모드에서 저장된 맵이 발행되지 않음 (publish_map silent failure)
+
+- **증상**: RGB-D / RGB-D+LiDAR / 3D LiDAR 탭에서 **Start Localization** 후
+  RViz에 `/rtabmap/cloud_map`·`/rtabmap/proj_map`·`/rtabmap/grid_map`이 비어 있음.
+  UI Log에는 `Scheduled global map publish: /rtabmap/rtabmap/publish_map`만 찍힘.
+  ROS 로그에도 서비스 호출 실패·성공 어떤 흔적도 없음.
+- **원인 (timing + silent failure 중첩)**
+  [slam_manager_3d_ui.py](../slam_manager_3d/slam_manager_3d_ui.py) 기존 `_schedule_global_map_publish`:
+  1. **고정 4초(`delay_ms=4000`) 후** `subprocess.Popen`으로 `ros2 service call` 실행 — RTAB-Map은
+     DB 로드·WM 초기화에 수 초~수십 초가 소요되므로 4초 시점엔 서비스
+     `/rtabmap/rtabmap/publish_map`이 아직 advertise 전. `ros2 service call`은 서비스가 없으면
+     "waiting for service..."에서 무한 대기.
+  2. **Popen + `stdout=DEVNULL, stderr=DEVNULL`** → fire-and-forget. 종료 코드도, 에러도 수집 안 함.
+  3. UI에 찍히는 "Scheduled global map publish"는 서브프로세스가 기동됐다는 의미일 뿐
+     서비스 호출 성공의 증거가 아님. 사용자에게는 성공한 것처럼 보임.
+  - 서비스 경로 자체는 정확 (CoreWrapper.cpp:666 `servicePrefix = get_name()+"/"`가
+    `namespace=rtabmap`, `name=rtabmap`과 결합되어 `/rtabmap/rtabmap/publish_map`으로 해석됨).
+- **수정** ([slam_manager_3d_ui.py:865-935](../slam_manager_3d/slam_manager_3d_ui.py#L865-L935))
+  백그라운드 스레드에서 polling → sync call → 결과 로깅:
+  1. `initial_delay_s=2.0` 짧게 대기 (rtabmap 프로세스 기동).
+  2. `service_wait_timeout_s=60.0`까지 1초 간격으로 `ros2 service list`를 폴링,
+     대상 서비스가 등장하면 즉시 다음 단계로.
+  3. `subprocess.run(..., capture_output=True, timeout=call_timeout_s)`로 동기 호출.
+     returncode·stdout·stderr 전부 `self.node.get_logger()`에 기록.
+  4. 서비스 미등장 / 호출 실패 / 타임아웃 모두 ERROR로 명시 로깅 → silent failure 제거.
+  - `import threading` 추가.
+- **검증**: `ast.parse` OK, `colcon build --packages-select slam_manager_3d` exit 0.
+  실기동 검증은 Gazebo+카메라 환경에서 localization 시 다음 로그 시퀀스를 확인해야 함:
+  - `publish_map service detected after Xs, calling...`
+  - `publish_map call succeeded: /rtabmap/rtabmap/publish_map`
+  - 이후 RViz에서 `/rtabmap/cloud_map` 등이 채워지는지.
+
 ### 남은 기술 부채
 
 - Pyright: `self.node` Optional 접근 경고 10여 건 존재 — 런타임에는 node가 항상 set되지만
   타입 가드 또는 assert로 정리 필요. (이번 수정과 무관, 별도 작업)
 - `_gazebo.launch.py` 이름이 양 모드에서 공용되는 구조는 혼란스러움. 장기적으로
   실기 전용 launch 파일을 분리하거나 파일명에서 `_gazebo` 접미사를 제거하는 것이 바람직.
+- Issue #4 대응은 UI 측 우회책 — 보다 근본적으론 launch 파일에서 rtabmap이 기동 직후
+  `Mem/InitWMWithAllNodes=true` + `RGBD/CreateOccupancyGrid` 등을 통해 자동으로
+  전체 LTM을 발행하도록 파라미터를 조정하는 방안도 검토 필요. `publish_map` 외부 호출 의존
+  구조는 타이밍 이슈에 취약함.
