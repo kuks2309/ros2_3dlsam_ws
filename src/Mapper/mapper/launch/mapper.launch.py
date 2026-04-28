@@ -5,6 +5,8 @@ from launch.substitutions import LaunchConfiguration
 from ament_index_python.packages import get_package_share_directory
 import os
 
+from launch_utils import setup_dup_check
+
 
 def generate_launch_description():
     params_file = os.path.join(
@@ -14,6 +16,14 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
 
     return LaunchDescription([
+        *setup_dup_check([
+            'wall_detector',
+            'wall_aligner',
+            'map_alignment_checker',
+            'exploration_planner',
+            'mapper_orchestrator',
+            'mapper_ui',
+        ]),
         DeclareLaunchArgument('use_sim_time', default_value='false'),
 
         # 신규: Hough 기반 벽 탐지 노드 (wall_aligner의 입력 퍼블리셔)

@@ -11,7 +11,7 @@ from launch.substitutions import LaunchConfiguration
 from launch.conditions import IfCondition
 from launch_ros.actions import Node
 
-from launch_utils import setup_gpu_offload
+from launch_utils import setup_dup_check, setup_gpu_offload
 
 
 def generate_launch_description():
@@ -133,6 +133,11 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        *setup_dup_check([
+            'robot_state_publisher',
+            'rviz2',
+            'rqt_robot_steering',
+        ]),
         *setup_gpu_offload(),
         set_gz_resource_path,
         world_arg,

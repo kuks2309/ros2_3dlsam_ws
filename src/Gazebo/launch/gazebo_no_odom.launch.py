@@ -5,6 +5,8 @@ from launch.substitutions import LaunchConfiguration
 from launch.conditions import IfCondition
 from launch_ros.actions import Node
 
+from launch_utils import setup_dup_check, setup_gpu_offload
+
 
 def generate_launch_description():
     # src 폴더 경로 사용 (CLAUDE.md 규칙)
@@ -130,6 +132,15 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        *setup_dup_check([
+            'static_tf_footprint_to_base',
+            'static_tf_base_to_lidar',
+            'static_tf_base_to_camera',
+            'static_tf_camera_to_optical',
+            'rviz2',
+            'rqt_robot_steering',
+        ]),
+        *setup_gpu_offload(),
         set_gz_resource_path,
         world_arg,
         odom_tf_arg,
