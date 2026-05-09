@@ -78,6 +78,9 @@ private:
   // Last cmd_vel (for ramp source on transitions)
   geometry_msgs::msg::Twist last_cmd_;
   rclcpp::Time last_tick_time_;
+  std::optional<rclcpp::Time> ramp_start_time_;
+  geometry_msgs::msg::Twist ramp_source_cmd_;
+  Mode last_mode_ = Mode::INIT;
 
   // Diagnostics
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::UInt8>::SharedPtr mode_pub_;

@@ -172,6 +172,13 @@ CorridorAwareController::computeVelocityCommands(
   sm_->applySnapshot(snap);
   sm_->tick(now_sec);
 
+  const Mode m = sm_->mode();
+  if (last_mode_ == Mode::AVOIDANCE && m == Mode::CRUISE) {
+    ramp_start_time_ = now;
+    ramp_source_cmd_ = last_cmd_;
+  }
+  last_mode_ = m;
+
   geometry_msgs::msg::TwistStamped out;
   out.header.stamp = now;
   out.header.frame_id = pose.header.frame_id;
@@ -184,7 +191,21 @@ CorridorAwareController::computeVelocityCommands(
       break;
     }
     case Mode::CRUISE: {
-      out.twist = pursuit_->computeVelocity(pose);
+      auto pursuit_cmd = pursuit_->computeVelocity(pose);
+      if (ramp_start_time_) {
+        const double t = (now - *ramp_start_time_).seconds();
+        if (t < mode_switch_ramp_time_) {
+          const double a = t / mode_switch_ramp_time_;
+          out.twist.linear.x  = (1.0 - a) * ramp_source_cmd_.linear.x  + a * pursuit_cmd.linear.x;
+          out.twist.linear.y  = (1.0 - a) * ramp_source_cmd_.linear.y  + a * pursuit_cmd.linear.y;
+          out.twist.angular.z = (1.0 - a) * ramp_source_cmd_.angular.z + a * pursuit_cmd.angular.z;
+        } else {
+          ramp_start_time_.reset();
+          out.twist = pursuit_cmd;
+        }
+      } else {
+        out.twist = pursuit_cmd;
+      }
       last_cmd_ = out.twist;
       break;
     }
