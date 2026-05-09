@@ -1,0 +1,12 @@
+<class_libraries>
+  <library path="corridor_aware_controller">
+    <class type="corridor_aware_controller::CorridorAwareController"
+           base_class_type="nav2_core::Controller">
+      <description>
+        Corridor-status-aware Nav2 controller. FREE: lightweight pursuit on global path
+        (no trajectory generation, no costmap query). BLOCKED/UNKNOWN/WARNING: delegate
+        to RegulatedPurePursuitController. Stale status forces AVOIDANCE.
+      </description>
+    </class>
+  </library>
+</class_libraries>
