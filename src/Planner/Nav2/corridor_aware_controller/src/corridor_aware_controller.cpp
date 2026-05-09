@@ -1,5 +1,6 @@
 #include "corridor_aware_controller/corridor_aware_controller.hpp"
 #include <pluginlib/class_list_macros.hpp>
+#include <algorithm>
 #include <stdexcept>
 
 namespace corridor_aware_controller
@@ -156,12 +157,50 @@ void CorridorAwareController::setSpeedLimit(const double & speed_limit, const bo
     pursuit_ = std::make_unique<LightweightPursuit>(pp);
   }
 }
-geometry_msgs::msg::TwistStamped CorridorAwareController::computeVelocityCommands(
-  const geometry_msgs::msg::PoseStamped &,
-  const geometry_msgs::msg::Twist &,
-  nav2_core::GoalChecker *)
+geometry_msgs::msg::TwistStamped
+CorridorAwareController::computeVelocityCommands(
+  const geometry_msgs::msg::PoseStamped & pose,
+  const geometry_msgs::msg::Twist & velocity,
+  nav2_core::GoalChecker * goal_checker)
 {
-  throw std::runtime_error("CorridorAwareController not implemented yet");
+  const auto now = clock_->now();
+  const double now_sec = now.seconds();
+  const double dt = std::max(0.0, (now - last_tick_time_).seconds());
+  last_tick_time_ = now;
+
+  const auto snap = snapshot();
+  sm_->applySnapshot(snap);
+  sm_->tick(now_sec);
+
+  geometry_msgs::msg::TwistStamped out;
+  out.header.stamp = now;
+  out.header.frame_id = pose.header.frame_id;
+
+  switch (sm_->mode()) {
+    case Mode::INIT:
+    case Mode::AVOIDANCE: {
+      out = rpp_->computeVelocityCommands(pose, velocity, goal_checker);
+      last_cmd_ = out.twist;
+      break;
+    }
+    case Mode::CRUISE: {
+      out.twist = pursuit_->computeVelocity(pose);
+      last_cmd_ = out.twist;
+      break;
+    }
+    case Mode::SAFE_STOP: {
+      out.twist = safe_stop_->step(last_cmd_, dt);
+      last_cmd_ = out.twist;
+      break;
+    }
+  }
+
+  if (enable_debug_topics_ && mode_pub_) {
+    std_msgs::msg::UInt8 m;
+    m.data = static_cast<uint8_t>(sm_->mode());
+    mode_pub_->publish(m);
+  }
+  return out;
 }
 }  // namespace corridor_aware_controller
 
