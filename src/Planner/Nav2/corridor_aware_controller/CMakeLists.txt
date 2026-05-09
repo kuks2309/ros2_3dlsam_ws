@@ -31,11 +31,13 @@ set(deps
   nav2_regulated_pure_pursuit_controller pluginlib
   local_odd_obstacle_detector)
 
-# Task 1 scaffold: only corridor_aware_controller.cpp exists. Subsequent
-# tasks will add state_machine.cpp, lightweight_pursuit.cpp,
-# safe_stop_ramp.cpp and the matching gtest binaries.
+# Phase 2 of plan: state_machine.cpp added. lightweight_pursuit.cpp and
+# safe_stop_ramp.cpp will be added by Tasks 12-14. Their gtest binaries
+# under if(BUILD_TESTING) below will be re-enabled as their source files
+# land — for now only test_state_machine is wired up.
 add_library(${PROJECT_NAME} SHARED
-  src/corridor_aware_controller.cpp)
+  src/corridor_aware_controller.cpp
+  src/state_machine.cpp)
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
@@ -49,6 +51,12 @@ install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin)
 install(DIRECTORY include/ DESTINATION include)
 install(FILES corridor_aware_controller_plugin.xml DESTINATION share/${PROJECT_NAME})
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_state_machine test/test_state_machine.cpp src/state_machine.cpp)
+  target_include_directories(test_state_machine PRIVATE include)
+endif()
 
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
