@@ -1,5 +1,7 @@
 #include "corridor_aware_controller/lightweight_pursuit.hpp"
 #include <cmath>
+#include <tf2/utils.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 namespace corridor_aware_controller
 {
@@ -30,9 +32,24 @@ LightweightPursuit::findCarrot(const geometry_msgs::msg::PoseStamped & pose) {
 }
 
 geometry_msgs::msg::Twist
-LightweightPursuit::computeVelocity(const geometry_msgs::msg::PoseStamped &) {
-  geometry_msgs::msg::Twist t;  // zero twist; full impl arrives in Task 13
-  return t;
+LightweightPursuit::computeVelocity(const geometry_msgs::msg::PoseStamped & pose) {
+  geometry_msgs::msg::Twist v;
+  if (plan_.poses.empty() || atGoal(pose)) return v;
+  auto carrot_opt = findCarrot(pose);
+  if (!carrot_opt) return v;
+  const double yaw = tf2::getYaw(pose.pose.orientation);
+  const double dx = carrot_opt->position.x - pose.pose.position.x;
+  const double dy = carrot_opt->position.y - pose.pose.position.y;
+  // Transform carrot into robot frame
+  const double local_x =  dx * std::cos(yaw) + dy * std::sin(yaw);
+  const double local_y = -dx * std::sin(yaw) + dy * std::cos(yaw);
+  (void)local_x;
+  const double L2 = local_x * local_x + local_y * local_y;
+  if (L2 < 1e-9) return v;
+  const double curvature = 2.0 * local_y / L2;
+  v.linear.x = params_.desired_linear_vel;
+  v.angular.z = v.linear.x * curvature;
+  return v;
 }
 
 bool LightweightPursuit::atGoal(const geometry_msgs::msg::PoseStamped & pose) const {
