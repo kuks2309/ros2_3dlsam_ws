@@ -30,6 +30,11 @@ void StateMachine::tick(double now_seconds) {
     }
     return;
   }
+  if (mode_ != Mode::SAFE_STOP && unknown_since_ &&
+      (now_seconds - *unknown_since_) > params_.unknown_stop_timeout) {
+    mode_ = Mode::SAFE_STOP;
+    return;
+  }
   if (mode_ == Mode::INIT) {
     if (last_status_stamp_) {
       if (last_status_ == 2) { mode_ = Mode::AVOIDANCE; return; }

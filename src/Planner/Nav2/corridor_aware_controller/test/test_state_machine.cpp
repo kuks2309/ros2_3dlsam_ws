@@ -119,3 +119,19 @@ TEST(StateMachine, CruiseToAvoidanceOnStaleStatus) {
   sm.tick(0.05 * p.free_debounce_count + p.status_stale_timeout + 0.01);
   EXPECT_EQ(sm.mode(), Mode::AVOIDANCE);
 }
+TEST(StateMachine, UnknownBriefStaysAvoidance) {
+  auto p = default_params(); StateMachine sm(p); sm.reset(0.0);
+  sm.onStatus(2, 0.05); sm.tick(0.05);
+  sm.onStatus(/*UNKNOWN*/3, 0.10); sm.tick(0.10);
+  EXPECT_EQ(sm.mode(), Mode::AVOIDANCE);
+}
+TEST(StateMachine, UnknownPersistentToSafeStop) {
+  auto p = default_params(); StateMachine sm(p); sm.reset(0.0);
+  sm.onStatus(2, 0.05); sm.tick(0.05);
+  // Stream UNKNOWN for > unknown_stop_timeout
+  for (int i = 0; i < 12; ++i) {
+    double t = 0.1 + i * 0.05;
+    sm.onStatus(3, t); sm.tick(t);
+  }
+  EXPECT_EQ(sm.mode(), Mode::SAFE_STOP);
+}
