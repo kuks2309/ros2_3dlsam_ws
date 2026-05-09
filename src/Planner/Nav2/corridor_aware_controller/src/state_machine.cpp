@@ -35,5 +35,11 @@ void StateMachine::tick(double now_seconds) {
       return;
     }
   }
+  if (mode_ == Mode::CRUISE) {
+    if (last_status_ == 2) { mode_ = Mode::AVOIDANCE; return; }
+    if (last_status_ == 1 && params_.warning_delegates_to_rpp) {
+      mode_ = Mode::AVOIDANCE; return;
+    }
+  }
 }
 }  // namespace corridor_aware_controller

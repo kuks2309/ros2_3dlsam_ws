@@ -63,3 +63,34 @@ TEST(StateMachine, InitToSafeStopAfterBootstrapTimeoutNoMessage) {
   sm.tick(p.bootstrap_timeout + 0.01);
   EXPECT_EQ(sm.mode(), Mode::SAFE_STOP);
 }
+
+TEST(StateMachine, CruiseToAvoidanceOnBlocked) {
+  auto p = default_params();
+  StateMachine sm(p);
+  sm.reset(0.0);
+  for (int i = 0; i < p.free_debounce_count; ++i) {
+    double t = (i + 1) * 0.05; sm.onStatus(0, t); sm.tick(t);
+  }
+  ASSERT_EQ(sm.mode(), Mode::CRUISE);
+  sm.onStatus(2, 0.5); sm.tick(0.5);
+  EXPECT_EQ(sm.mode(), Mode::AVOIDANCE);
+}
+TEST(StateMachine, CruiseToAvoidanceOnWarningWithDefaultParam) {
+  auto p = default_params(); p.warning_delegates_to_rpp = true;
+  StateMachine sm(p); sm.reset(0.0);
+  for (int i = 0; i < p.free_debounce_count; ++i) {
+    double t = (i + 1) * 0.05; sm.onStatus(0, t); sm.tick(t);
+  }
+  ASSERT_EQ(sm.mode(), Mode::CRUISE);
+  sm.onStatus(/*WARNING*/1, 0.5); sm.tick(0.5);
+  EXPECT_EQ(sm.mode(), Mode::AVOIDANCE);
+}
+TEST(StateMachine, CruiseStaysOnWarningWhenParamFalse) {
+  auto p = default_params(); p.warning_delegates_to_rpp = false;
+  StateMachine sm(p); sm.reset(0.0);
+  for (int i = 0; i < p.free_debounce_count; ++i) {
+    double t = (i + 1) * 0.05; sm.onStatus(0, t); sm.tick(t);
+  }
+  sm.onStatus(1, 0.5); sm.tick(0.5);
+  EXPECT_EQ(sm.mode(), Mode::CRUISE);
+}
