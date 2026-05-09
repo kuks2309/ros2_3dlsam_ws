@@ -112,11 +112,50 @@ StatusSnapshot CorridorAwareController::snapshot() {
   return latest_status_;
 }
 
-void CorridorAwareController::cleanup() {}
-void CorridorAwareController::activate() {}
-void CorridorAwareController::deactivate() {}
-void CorridorAwareController::setPlan(const nav_msgs::msg::Path &) {}
-void CorridorAwareController::setSpeedLimit(const double &, const bool &) {}
+void CorridorAwareController::cleanup() {
+  RCLCPP_INFO(logger_, "CorridorAwareController cleanup");
+  if (rpp_) { rpp_->cleanup(); rpp_.reset(); }
+  status_sub_.reset();
+  mode_pub_.reset();
+  sm_.reset(); pursuit_.reset(); safe_stop_.reset();
+}
+
+void CorridorAwareController::activate() {
+  RCLCPP_INFO(logger_, "CorridorAwareController activate");
+  if (rpp_) rpp_->activate();
+  if (mode_pub_) mode_pub_->on_activate();
+  if (sm_) sm_->reset(clock_->now().seconds());
+  last_cmd_ = geometry_msgs::msg::Twist();
+  last_tick_time_ = clock_->now();
+}
+
+void CorridorAwareController::deactivate() {
+  RCLCPP_INFO(logger_, "CorridorAwareController deactivate");
+  // SI-5: emit one zero cmd_vel (callers receive it next tick; we just zero our cache)
+  last_cmd_ = geometry_msgs::msg::Twist();
+  if (rpp_) rpp_->deactivate();
+  if (mode_pub_) mode_pub_->on_deactivate();
+}
+
+void CorridorAwareController::setPlan(const nav_msgs::msg::Path & path) {
+  if (pursuit_) pursuit_->setPlan(path);
+  if (rpp_) rpp_->setPlan(path);
+}
+
+void CorridorAwareController::setSpeedLimit(const double & speed_limit, const bool & percentage) {
+  if (rpp_) rpp_->setSpeedLimit(speed_limit, percentage);
+  // pursuit: scale desired_linear_vel — minimal handling
+  if (pursuit_) {
+    PursuitParams pp;
+    pp.lookahead_dist = lookahead_dist_;
+    pp.min_lookahead_dist = min_lookahead_dist_;
+    pp.max_lookahead_dist = max_lookahead_dist_;
+    pp.desired_linear_vel = percentage
+      ? desired_linear_vel_ * speed_limit / 100.0
+      : speed_limit;
+    pursuit_ = std::make_unique<LightweightPursuit>(pp);
+  }
+}
 geometry_msgs::msg::TwistStamped CorridorAwareController::computeVelocityCommands(
   const geometry_msgs::msg::PoseStamped &,
   const geometry_msgs::msg::Twist &,
