@@ -22,6 +22,12 @@ struct StateMachineParams {
   bool   warning_delegates_to_rpp = true;
 };
 
+struct StatusSnapshot {
+  uint8_t status = 3;          // UNKNOWN
+  double  stamp_seconds = 0.0;
+  bool    received = false;
+};
+
 class StateMachine {
 public:
   explicit StateMachine(const StateMachineParams & params);
@@ -37,6 +43,10 @@ public:
   void tick(double now_seconds);
 
   Mode mode() const { return mode_; }
+
+  void applySnapshot(const StatusSnapshot & snap) {
+    if (snap.received) onStatus(snap.status, snap.stamp_seconds);
+  }
 
 private:
   StateMachineParams params_;
