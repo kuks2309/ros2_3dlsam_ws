@@ -53,3 +53,13 @@ TEST(StateMachine, InitStaysOnFreeBelowDebounce) {
   }
   EXPECT_EQ(sm.mode(), Mode::INIT);
 }
+
+TEST(StateMachine, InitToSafeStopAfterBootstrapTimeoutNoMessage) {
+  auto p = default_params();
+  StateMachine sm(p);
+  sm.reset(0.0);
+  sm.tick(0.5);
+  EXPECT_EQ(sm.mode(), Mode::INIT);
+  sm.tick(p.bootstrap_timeout + 0.01);
+  EXPECT_EQ(sm.mode(), Mode::SAFE_STOP);
+}
