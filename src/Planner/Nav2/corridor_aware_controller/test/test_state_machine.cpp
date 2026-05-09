@@ -21,3 +21,11 @@ TEST(StateMachine, BootInitMode) {
   StateMachine sm(default_params());
   EXPECT_EQ(sm.mode(), Mode::INIT);
 }
+
+TEST(StateMachine, InitToAvoidanceOnBlocked) {
+  StateMachine sm(default_params());
+  sm.reset(0.0);
+  sm.onStatus(/*BLOCKED*/2, 0.05);
+  sm.tick(0.05);
+  EXPECT_EQ(sm.mode(), Mode::AVOIDANCE);
+}

@@ -13,6 +13,17 @@ void StateMachine::reset(double now_seconds) {
   unknown_since_.reset();
 }
 
-void StateMachine::onStatus(uint8_t, double) {}
-void StateMachine::tick(double) {}
+void StateMachine::onStatus(uint8_t status, double stamp_seconds) {
+  last_status_ = status;
+  last_status_stamp_ = stamp_seconds;
+  if (status == 0) { ++free_streak_; } else { free_streak_ = 0; }
+  if (status == 3) { if (!unknown_since_) unknown_since_ = stamp_seconds; }
+  else { unknown_since_.reset(); }
+}
+
+void StateMachine::tick(double /*now_seconds*/) {
+  if (mode_ == Mode::INIT) {
+    if (last_status_stamp_ && last_status_ == 2) { mode_ = Mode::AVOIDANCE; return; }
+  }
+}
 }  // namespace corridor_aware_controller
