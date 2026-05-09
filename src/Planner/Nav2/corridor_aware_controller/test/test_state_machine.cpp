@@ -29,3 +29,27 @@ TEST(StateMachine, InitToAvoidanceOnBlocked) {
   sm.tick(0.05);
   EXPECT_EQ(sm.mode(), Mode::AVOIDANCE);
 }
+
+TEST(StateMachine, InitToCruiseAfterFreeDebounced) {
+  auto p = default_params();
+  StateMachine sm(p);
+  sm.reset(0.0);
+  for (int i = 0; i < p.free_debounce_count; ++i) {
+    double t = (i + 1) * 0.05;
+    sm.onStatus(/*FREE*/0, t);
+    sm.tick(t);
+  }
+  EXPECT_EQ(sm.mode(), Mode::CRUISE);
+}
+
+TEST(StateMachine, InitStaysOnFreeBelowDebounce) {
+  auto p = default_params();
+  StateMachine sm(p);
+  sm.reset(0.0);
+  for (int i = 0; i < p.free_debounce_count - 1; ++i) {
+    double t = (i + 1) * 0.05;
+    sm.onStatus(0, t);
+    sm.tick(t);
+  }
+  EXPECT_EQ(sm.mode(), Mode::INIT);
+}
