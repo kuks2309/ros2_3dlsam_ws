@@ -32,7 +32,6 @@ set(deps
   local_odd_obstacle_detector)
 
 # Phase 2 of plan: state_machine.cpp + lightweight_pursuit.cpp + safe_stop_ramp.cpp added.
-# Future tasks will add the plugin integration test (test_plugin_integration).
 add_library(${PROJECT_NAME} SHARED
   src/corridor_aware_controller.cpp
   src/state_machine.cpp
@@ -64,6 +63,10 @@ if(BUILD_TESTING)
   ament_add_gtest(test_safe_stop_ramp test/test_safe_stop_ramp.cpp src/safe_stop_ramp.cpp)
   target_include_directories(test_safe_stop_ramp PRIVATE include)
   ament_target_dependencies(test_safe_stop_ramp geometry_msgs)
+
+  ament_add_gtest(test_plugin_integration test/test_plugin_integration.cpp)
+  target_link_libraries(test_plugin_integration ${PROJECT_NAME})
+  ament_target_dependencies(test_plugin_integration ${deps})
 endif()
 
 ament_export_include_directories(include)
