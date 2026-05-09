@@ -109,3 +109,13 @@ TEST(StateMachine, AvoidanceStaysOnSingleFree) {
   sm.onStatus(0, 0.1); sm.tick(0.1);
   EXPECT_EQ(sm.mode(), Mode::AVOIDANCE);
 }
+TEST(StateMachine, CruiseToAvoidanceOnStaleStatus) {
+  auto p = default_params(); StateMachine sm(p); sm.reset(0.0);
+  for (int i = 0; i < p.free_debounce_count; ++i) {
+    double t = (i+1) * 0.05; sm.onStatus(0, t); sm.tick(t);
+  }
+  ASSERT_EQ(sm.mode(), Mode::CRUISE);
+  // No new status; advance clock past stale timeout
+  sm.tick(0.05 * p.free_debounce_count + p.status_stale_timeout + 0.01);
+  EXPECT_EQ(sm.mode(), Mode::AVOIDANCE);
+}

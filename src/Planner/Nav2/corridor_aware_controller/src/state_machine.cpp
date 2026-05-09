@@ -22,6 +22,14 @@ void StateMachine::onStatus(uint8_t status, double stamp_seconds) {
 }
 
 void StateMachine::tick(double now_seconds) {
+  // Stale status check: applies after we have ever received a status.
+  if (last_status_stamp_ &&
+      (now_seconds - *last_status_stamp_) > params_.status_stale_timeout) {
+    if (mode_ != Mode::SAFE_STOP) {
+      mode_ = Mode::AVOIDANCE;
+    }
+    return;
+  }
   if (mode_ == Mode::INIT) {
     if (last_status_stamp_) {
       if (last_status_ == 2) { mode_ = Mode::AVOIDANCE; return; }
