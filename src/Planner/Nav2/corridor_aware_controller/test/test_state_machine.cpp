@@ -94,3 +94,18 @@ TEST(StateMachine, CruiseStaysOnWarningWhenParamFalse) {
   sm.onStatus(1, 0.5); sm.tick(0.5);
   EXPECT_EQ(sm.mode(), Mode::CRUISE);
 }
+TEST(StateMachine, AvoidanceToCruiseAfterFreeDebounce) {
+  auto p = default_params(); StateMachine sm(p); sm.reset(0.0);
+  sm.onStatus(2, 0.05); sm.tick(0.05);
+  ASSERT_EQ(sm.mode(), Mode::AVOIDANCE);
+  for (int i = 0; i < p.free_debounce_count; ++i) {
+    double t = 0.1 + (i + 1) * 0.05; sm.onStatus(0, t); sm.tick(t);
+  }
+  EXPECT_EQ(sm.mode(), Mode::CRUISE);
+}
+TEST(StateMachine, AvoidanceStaysOnSingleFree) {
+  auto p = default_params(); StateMachine sm(p); sm.reset(0.0);
+  sm.onStatus(2, 0.05); sm.tick(0.05);
+  sm.onStatus(0, 0.1); sm.tick(0.1);
+  EXPECT_EQ(sm.mode(), Mode::AVOIDANCE);
+}
