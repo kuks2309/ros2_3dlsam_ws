@@ -59,5 +59,11 @@ void StateMachine::tick(double now_seconds) {
       mode_ = Mode::CRUISE; return;
     }
   }
+  if (mode_ == Mode::SAFE_STOP) {
+    if (last_status_ == 2) { mode_ = Mode::AVOIDANCE; return; }
+    if (last_status_ == 0 && free_streak_ >= 2 * params_.free_debounce_count) {
+      mode_ = Mode::CRUISE; return;
+    }
+  }
 }
 }  // namespace corridor_aware_controller

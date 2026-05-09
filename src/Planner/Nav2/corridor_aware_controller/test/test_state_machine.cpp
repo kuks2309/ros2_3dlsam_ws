@@ -135,3 +135,21 @@ TEST(StateMachine, UnknownPersistentToSafeStop) {
   }
   EXPECT_EQ(sm.mode(), Mode::SAFE_STOP);
 }
+TEST(StateMachine, SafeStopRecoversToAvoidanceOnBlocked) {
+  auto p = default_params(); StateMachine sm(p); sm.reset(0.0);
+  sm.tick(p.bootstrap_timeout + 0.01);
+  ASSERT_EQ(sm.mode(), Mode::SAFE_STOP);
+  sm.onStatus(2, p.bootstrap_timeout + 0.05);
+  sm.tick(p.bootstrap_timeout + 0.05);
+  EXPECT_EQ(sm.mode(), Mode::AVOIDANCE);
+}
+TEST(StateMachine, SafeStopRecoversToCruiseAfterFreeTwoN) {
+  auto p = default_params(); StateMachine sm(p); sm.reset(0.0);
+  sm.tick(p.bootstrap_timeout + 0.01);
+  ASSERT_EQ(sm.mode(), Mode::SAFE_STOP);
+  for (int i = 0; i < 2 * p.free_debounce_count; ++i) {
+    double t = p.bootstrap_timeout + 0.05 + i * 0.05;
+    sm.onStatus(0, t); sm.tick(t);
+  }
+  EXPECT_EQ(sm.mode(), Mode::CRUISE);
+}
