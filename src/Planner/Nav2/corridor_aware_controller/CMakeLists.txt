@@ -31,13 +31,13 @@ set(deps
   nav2_regulated_pure_pursuit_controller pluginlib
   local_odd_obstacle_detector)
 
-# Phase 2 of plan: state_machine.cpp + lightweight_pursuit.cpp added.
-# safe_stop_ramp.cpp will be added by Task 14. Its gtest binary under
-# if(BUILD_TESTING) below will be re-enabled as the source file lands.
+# Phase 2 of plan: state_machine.cpp + lightweight_pursuit.cpp + safe_stop_ramp.cpp added.
+# Future tasks will add the plugin integration test (test_plugin_integration).
 add_library(${PROJECT_NAME} SHARED
   src/corridor_aware_controller.cpp
   src/state_machine.cpp
-  src/lightweight_pursuit.cpp)
+  src/lightweight_pursuit.cpp
+  src/safe_stop_ramp.cpp)
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
@@ -60,6 +60,10 @@ if(BUILD_TESTING)
   ament_add_gtest(test_lightweight_pursuit test/test_lightweight_pursuit.cpp src/lightweight_pursuit.cpp)
   target_include_directories(test_lightweight_pursuit PRIVATE include)
   ament_target_dependencies(test_lightweight_pursuit nav_msgs geometry_msgs tf2 tf2_geometry_msgs)
+
+  ament_add_gtest(test_safe_stop_ramp test/test_safe_stop_ramp.cpp src/safe_stop_ramp.cpp)
+  target_include_directories(test_safe_stop_ramp PRIVATE include)
+  ament_target_dependencies(test_safe_stop_ramp geometry_msgs)
 endif()
 
 ament_export_include_directories(include)
