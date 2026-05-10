@@ -3,6 +3,10 @@
 #include <algorithm>
 #include <stdexcept>
 
+#include <tf2/exceptions.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+
 namespace corridor_aware_controller
 {
 void CorridorAwareController::configure(
@@ -143,6 +147,7 @@ void CorridorAwareController::deactivate() {
 }
 
 void CorridorAwareController::setPlan(const nav_msgs::msg::Path & path) {
+  global_plan_ = path;
   if (pursuit_) pursuit_->setPlan(path);
   if (rpp_) rpp_->setPlan(path);
 }
@@ -190,7 +195,26 @@ CorridorAwareController::computeVelocityCommands(
       break;
     }
     case Mode::CRUISE: {
-      auto pursuit_cmd = pursuit_->computeVelocity(pose);
+      // SI-4: transform pose into plan frame; on TF failure, return zero velocity.
+      // Stale TF is more dangerous than stopping — never reuse last_cmd_.
+      geometry_msgs::msg::PoseStamped pose_in_plan = pose;
+      geometry_msgs::msg::Twist pursuit_cmd;
+      bool tf_ok = true;
+      const std::string plan_frame = global_plan_.header.frame_id;
+      if (!plan_frame.empty() && plan_frame != pose.header.frame_id && tf_) {
+        try {
+          pose_in_plan = tf_->transform(pose, plan_frame, tf2::durationFromSec(0.1));
+        } catch (const tf2::TransformException & ex) {
+          RCLCPP_WARN_THROTTLE(logger_, *clock_, 2000,
+            "CorridorAwareController CRUISE: TF lookup %s -> %s failed: %s. Returning zero velocity.",
+            pose.header.frame_id.c_str(), plan_frame.c_str(), ex.what());
+          tf_ok = false;
+        }
+      }
+      if (tf_ok) {
+        pursuit_cmd = pursuit_->computeVelocity(pose_in_plan);
+      }
+      // ramp logic operates on pursuit_cmd (zero-initialized if TF failed)
       if (ramp_start_time_) {
         const double t = (now - *ramp_start_time_).seconds();
         if (t < mode_switch_ramp_time_) {

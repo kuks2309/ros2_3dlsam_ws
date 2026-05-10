@@ -82,6 +82,9 @@ private:
   geometry_msgs::msg::Twist ramp_source_cmd_;
   Mode last_mode_ = Mode::INIT;
 
+  // Cached plan (for SI-4: TF transform of pose into plan frame in CRUISE)
+  nav_msgs::msg::Path global_plan_;
+
   // Diagnostics
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::UInt8>::SharedPtr mode_pub_;
 
