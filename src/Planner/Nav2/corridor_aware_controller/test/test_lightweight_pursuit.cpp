@@ -85,3 +85,17 @@ TEST(LightweightPursuit, EmptyPlanReturnsZero) {
   EXPECT_NEAR(v.linear.x, 0.0, 1e-6);
   EXPECT_NEAR(v.angular.z, 0.0, 1e-6);
 }
+
+TEST(LightweightPursuit, SetDesiredLinearVelPreservesPlan) {
+  PursuitParams pp; pp.lookahead_dist = 0.6; pp.desired_linear_vel = 0.5;
+  LightweightPursuit lp(pp);
+  lp.setPlan(makeStraightPath(20, 0.1));
+  // Compute once to advance the carrot index.
+  geometry_msgs::msg::PoseStamped pose; pose.pose.orientation.w = 1.0;
+  auto v_before = lp.computeVelocity(pose);
+  ASSERT_GT(v_before.linear.x, 0.0);
+  // Change speed; plan must remain — next computeVelocity returns the new speed, not zero.
+  lp.setDesiredLinearVel(0.25);
+  auto v_after = lp.computeVelocity(pose);
+  EXPECT_NEAR(v_after.linear.x, 0.25, 1e-3);
+}

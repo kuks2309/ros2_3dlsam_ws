@@ -59,4 +59,8 @@ bool LightweightPursuit::atGoal(const geometry_msgs::msg::PoseStamped & pose) co
          < params_.goal_tolerance;
 }
 
+void LightweightPursuit::setDesiredLinearVel(double v) {
+  params_.desired_linear_vel = v;
+}
+
 }  // namespace corridor_aware_controller

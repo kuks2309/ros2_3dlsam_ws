@@ -149,16 +149,11 @@ void CorridorAwareController::setPlan(const nav_msgs::msg::Path & path) {
 
 void CorridorAwareController::setSpeedLimit(const double & speed_limit, const bool & percentage) {
   if (rpp_) rpp_->setSpeedLimit(speed_limit, percentage);
-  // pursuit: scale desired_linear_vel — minimal handling
   if (pursuit_) {
-    PursuitParams pp;
-    pp.lookahead_dist = lookahead_dist_;
-    pp.min_lookahead_dist = min_lookahead_dist_;
-    pp.max_lookahead_dist = max_lookahead_dist_;
-    pp.desired_linear_vel = percentage
+    const double new_v = percentage
       ? desired_linear_vel_ * speed_limit / 100.0
       : speed_limit;
-    pursuit_ = std::make_unique<LightweightPursuit>(pp);
+    pursuit_->setDesiredLinearVel(new_v);
   }
 }
 geometry_msgs::msg::TwistStamped

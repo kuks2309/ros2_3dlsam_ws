@@ -34,6 +34,9 @@ public:
 
   bool atGoal(const geometry_msgs::msg::PoseStamped & robot_pose) const;
 
+  /// Update desired linear velocity in-place without losing plan or carrot cursor.
+  void setDesiredLinearVel(double v);
+
 private:
   PursuitParams params_;
   nav_msgs::msg::Path plan_;
