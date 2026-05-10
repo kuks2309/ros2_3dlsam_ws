@@ -13,6 +13,10 @@ void CorridorAwareController::configure(
 {
   node_ = parent;
   auto node = parent.lock();
+  if (!node) {
+    throw std::runtime_error(
+      "CorridorAwareController::configure: parent lifecycle node has expired");
+  }
   plugin_name_ = name;
   logger_ = node->get_logger();
   clock_ = node->get_clock();
@@ -25,10 +29,10 @@ void CorridorAwareController::configure(
       node->declare_parameter<decltype(default_val)>(name + "." + key, default_val);
     }
   };
-  declare("lightweight.lookahead_dist", 0.6);
-  declare("lightweight.min_lookahead_dist", 0.3);
-  declare("lightweight.max_lookahead_dist", 1.2);
-  declare("lightweight.desired_linear_vel", 0.5);
+  declare("lightweight_lookahead_dist", 0.6);
+  declare("lightweight_min_lookahead_dist", 0.3);
+  declare("lightweight_max_lookahead_dist", 1.2);
+  declare("lightweight_desired_linear_vel", 0.5);
   declare("status_topic", std::string("/corridor_obstacle_status"));
   declare("status_stale_timeout", 0.3);
   declare("bootstrap_timeout", 1.0);
@@ -39,10 +43,10 @@ void CorridorAwareController::configure(
   declare("safe_stop_decel", 0.8);
   declare("enable_debug_topics", false);
 
-  node->get_parameter(name + ".lightweight.lookahead_dist", lookahead_dist_);
-  node->get_parameter(name + ".lightweight.min_lookahead_dist", min_lookahead_dist_);
-  node->get_parameter(name + ".lightweight.max_lookahead_dist", max_lookahead_dist_);
-  node->get_parameter(name + ".lightweight.desired_linear_vel", desired_linear_vel_);
+  node->get_parameter(name + ".lightweight_lookahead_dist", lookahead_dist_);
+  node->get_parameter(name + ".lightweight_min_lookahead_dist", min_lookahead_dist_);
+  node->get_parameter(name + ".lightweight_max_lookahead_dist", max_lookahead_dist_);
+  node->get_parameter(name + ".lightweight_desired_linear_vel", desired_linear_vel_);
   node->get_parameter(name + ".status_topic", status_topic_);
   node->get_parameter(name + ".status_stale_timeout", status_stale_timeout_);
   node->get_parameter(name + ".bootstrap_timeout", bootstrap_timeout_);

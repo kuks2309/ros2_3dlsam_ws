@@ -195,10 +195,10 @@ All RPP parameters from the existing `smac_hybrid_params.yaml` remain under the 
 
 | Name | Type | Default | Description |
 |---|---|---|---|
-| `lightweight.lookahead_dist` | double | 0.6 | Pure-pursuit lookahead in CRUISE mode (m) |
-| `lightweight.min_lookahead_dist` | double | 0.3 | Floor for adaptive scaling |
-| `lightweight.max_lookahead_dist` | double | 1.2 | Ceiling for adaptive scaling |
-| `lightweight.desired_linear_vel` | double | 0.5 | Forward speed in CRUISE (m/s) |
+| `lightweight_lookahead_dist` | double | 0.6 | Pure-pursuit lookahead in CRUISE mode (m) |
+| `lightweight_min_lookahead_dist` | double | 0.3 | Floor for adaptive scaling |
+| `lightweight_max_lookahead_dist` | double | 1.2 | Ceiling for adaptive scaling |
+| `lightweight_desired_linear_vel` | double | 0.5 | Forward speed in CRUISE (m/s) |
 | `status_topic` | string | `/corridor_obstacle_status` | Override-able for namespacing |
 | `status_stale_timeout` | double | 0.3 | Seconds; beyond this, treat as UNKNOWN |
 | `bootstrap_timeout` | double | 1.0 | Seconds at INIT before SAFE_STOP if no message |
@@ -270,10 +270,10 @@ controller_server:
     FollowPath:
       plugin: "corridor_aware_controller::CorridorAwareController"
       # Lightweight-pursuit parameters
-      lightweight.lookahead_dist: 0.6
-      lightweight.min_lookahead_dist: 0.3
-      lightweight.max_lookahead_dist: 1.2
-      lightweight.desired_linear_vel: 0.5
+      lightweight_lookahead_dist: 0.6
+      lightweight_min_lookahead_dist: 0.3
+      lightweight_max_lookahead_dist: 1.2
+      lightweight_desired_linear_vel: 0.5
       # State machine
       status_topic: "/corridor_obstacle_status"
       status_stale_timeout: 0.3
