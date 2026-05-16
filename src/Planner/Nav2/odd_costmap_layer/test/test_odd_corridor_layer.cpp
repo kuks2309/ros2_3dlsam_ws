@@ -115,3 +115,28 @@ TEST_F(LayerFixture, L02_UnknownTreatmentLethalByDefault) {
   ASSERT_TRUE(master->worldToMap(0.0, 0.0, mi, mj));
   EXPECT_EQ(master->getCost(mi, mj), LETHAL_OBSTACLE);
 }
+
+TEST_F(LayerFixture, L03_UnknownTreatmentFreeOverride) {
+  layer_->setUnknownTreatmentForTest(odd_costmap_layer::UnknownTreatment::FREE);
+
+  auto m = std::make_shared<nav_msgs::msg::OccupancyGrid>();
+  m->header.frame_id = "map";
+  m->info.resolution = 0.1;
+  m->info.width = 3;
+  m->info.height = 3;
+  m->info.origin.position.x = -0.15;
+  m->info.origin.position.y = -0.15;
+  m->info.origin.orientation.w = 1.0;
+  m->data.assign(9, 0);
+  m->data[1 * 3 + 1] = -1;
+  layer_->onMaskMessage(m);
+
+  auto * master = layered_->getCostmap();
+  layer_->updateCosts(*master, 0, 0,
+                      static_cast<int>(master->getSizeInCellsX()),
+                      static_cast<int>(master->getSizeInCellsY()));
+
+  unsigned int mi, mj;
+  ASSERT_TRUE(master->worldToMap(0.0, 0.0, mi, mj));
+  EXPECT_EQ(master->getCost(mi, mj), FREE_SPACE);
+}
