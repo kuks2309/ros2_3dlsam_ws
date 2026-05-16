@@ -163,3 +163,31 @@ TEST_F(LayerFixture, L04_NoMessageKeepsCurrentFalseAndMasterUntouched) {
   // Master cell preserved.
   EXPECT_EQ(master->getCost(mi, mj), 200);
 }
+
+TEST_F(LayerFixture, L05_ResolutionMismatchUsesNearestNeighbor) {
+  // Mask resolution 0.2 (coarser than master's 0.1).
+  // 5x5 mask centered at origin, all free.
+  auto m = std::make_shared<nav_msgs::msg::OccupancyGrid>();
+  m->header.frame_id = "map";
+  m->info.resolution = 0.2;
+  m->info.width = 5;
+  m->info.height = 5;
+  m->info.origin.position.x = -0.5;
+  m->info.origin.position.y = -0.5;
+  m->info.origin.orientation.w = 1.0;
+  m->data.assign(25, 0);   // all free
+  layer_->onMaskMessage(m);
+
+  auto * master = layered_->getCostmap();
+  layer_->updateCosts(*master, 0, 0,
+                      static_cast<int>(master->getSizeInCellsX()),
+                      static_cast<int>(master->getSizeInCellsY()));
+
+  // Multiple master cells (finer res) should all be FREE due to nearest-neighbor
+  // sampling of the same mask cell.
+  unsigned int mi, mj;
+  ASSERT_TRUE(master->worldToMap(0.0, 0.0, mi, mj));
+  EXPECT_EQ(master->getCost(mi, mj), FREE_SPACE);
+  ASSERT_TRUE(master->worldToMap(0.05, 0.05, mi, mj));
+  EXPECT_EQ(master->getCost(mi, mj), FREE_SPACE);
+}
