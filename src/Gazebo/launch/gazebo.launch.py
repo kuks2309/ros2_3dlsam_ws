@@ -35,6 +35,12 @@ def generate_launch_description():
         description='Enable odom to base_link TF publishing'
     )
 
+    rviz_arg = DeclareLaunchArgument(
+        'rviz',
+        default_value='true',
+        description='Launch the Gazebo RViz (gazebo.rviz). Set to false when a parent bringup spawns its own RViz to avoid two simultaneous instances.'
+    )
+
     # Set IGN_GAZEBO_RESOURCE_PATH for Ignition Gazebo to find models
     set_gz_resource_path = SetEnvironmentVariable(
         name='IGN_GAZEBO_RESOURCE_PATH',
@@ -100,14 +106,15 @@ def generate_launch_description():
     # robot_state_publisher 가 이를 구독해 wheel link TF (continuous joint)를 생성.
     # 별도 joint_state_publisher 노드 불필요.
 
-    # RViz2
+    # RViz2 — gated on `rviz` argument so a parent bringup can suppress it
     rviz = Node(
         package='rviz2',
         executable='rviz2',
         name='rviz2',
         arguments=['-d', rviz_config],
         parameters=[{'use_sim_time': True}],
-        output='screen'
+        output='screen',
+        condition=IfCondition(LaunchConfiguration('rviz'))
     )
 
     # rqt_robot_steering for manual control
@@ -142,6 +149,7 @@ def generate_launch_description():
         set_gz_resource_path,
         world_arg,
         odom_tf_arg,
+        rviz_arg,
         gazebo,
         bridge,
         odom_to_tf,
