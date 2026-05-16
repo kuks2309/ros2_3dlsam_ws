@@ -140,3 +140,26 @@ TEST_F(LayerFixture, L03_UnknownTreatmentFreeOverride) {
   ASSERT_TRUE(master->worldToMap(0.0, 0.0, mi, mj));
   EXPECT_EQ(master->getCost(mi, mj), FREE_SPACE);
 }
+
+TEST_F(LayerFixture, L04_NoMessageKeepsCurrentFalseAndMasterUntouched) {
+  // No onMaskMessage call. Confirm current_ is false (initial value from onInitialize).
+  EXPECT_FALSE(layer_->isCurrentForTest());
+
+  // Pre-fill master cell with a sentinel; updateCosts should leave it alone.
+  auto * master = layered_->getCostmap();
+  unsigned int mi, mj;
+  ASSERT_TRUE(master->worldToMap(0.0, 0.0, mi, mj));
+  master->setCost(mi, mj, 200);
+
+  double min_x = 1e9, min_y = 1e9, max_x = -1e9, max_y = -1e9;
+  layer_->updateBounds(0.0, 0.0, 0.0, &min_x, &min_y, &max_x, &max_y);
+  // No mask cached, so bounds remain unmodified (sentinels).
+  EXPECT_EQ(min_x, 1e9);
+  EXPECT_EQ(max_x, -1e9);
+
+  layer_->updateCosts(*master, 0, 0,
+                      static_cast<int>(master->getSizeInCellsX()),
+                      static_cast<int>(master->getSizeInCellsY()));
+  // Master cell preserved.
+  EXPECT_EQ(master->getCost(mi, mj), 200);
+}

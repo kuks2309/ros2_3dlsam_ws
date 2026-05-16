@@ -42,6 +42,9 @@ public:
   /// Public for unit tests — override unknown_treatment without ROS params.
   void setUnknownTreatmentForTest(UnknownTreatment t) { unknown_treatment_ = t; }
 
+  /// Public for unit tests — inspect current_ without going through layer plumbing.
+  bool isCurrentForTest() const { return current_; }
+
 private:
   rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr mask_sub_;
   std::mutex mask_mutex_;
