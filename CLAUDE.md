@@ -1,44 +1,59 @@
-# ros2_3dslam_ws — Project Instructions
+# Claude 작업 지침
 
-## 작업 실행 원칙
+## 핵심 원칙
 
-- **직접 실행 가능한 작업은 직접 실행하고 결과를 사용자에게 제시한다.**
-  사용자에게 명령어를 안내하고 실행을 미루지 않는다. Bash, Read, Edit 등 가용한 도구로 수행 가능한 작업은 즉시 수행하고, 결과만 보고한다.
-  단, 다음은 예외로 사용자 확인을 받는다:
-  - 실행 중인 SLAM/매핑 데이터 손실 위험이 있는 프로세스 종료
-  - 외부 시스템에 영향 (push, PR, 외부 메시지 발송 등)
-  - 되돌리기 어려운 파일/브랜치 삭제
+1. **사용자가 지시한 사항만 수행한다** (범위를 임의로 확장하지 않는다)
+2. **임의로 기능을 추가하거나 변경하지 않는다**
+3. **객관적 사실로 판단한다** (코드·로그·매뉴얼 인용, 추측·기억·일반 지식 금지)
+4. **모르는 것은 "확인되지 않음" 으로 명시한다** (할루시네이션 금지)
+5. **관련 이론을 철저히 조사한 후 시작한다** (공식 문서·매뉴얼·기존 코드 우선)
+6. **코딩 전 구조를 제시하고 사용자 승인을 받는다**
+7. **검증·보고는 파일·줄·실제 출력을 인용한다** ("동일합니다" 금지)
+8. **모든 의도와 결정을 즉시 기록한다** (의도 부채 방지)
 
-## 프로젝트 구조
+## 프로젝트 성격
 
-- ROS2 Humble + Ignition Gazebo Fortress
-- 3D SLAM: RTAB-Map (`src/SLAM/3D_SLAM/rtab_map_3d`)
-- 2D SLAM: `src/SLAM/2D_SLAM/`
-- Mapper: `src/Mapper/` (mapper, wall_detector)
-- Nav2: `src/Planner/Nav2/nav2_smac_hybrid`
-- Gazebo 시뮬레이터: `src/Gazebo/` (패키지명 `tm_gazebo`)
-- Control: `src/Control/AMR-Motion-Control/`
+ROS2 Humble + Ignition Gazebo Fortress 기반 3D / 2D SLAM + Nav2 통합 워크스페이스. RTAB-Map 3D SLAM, Mapper(wall_aligner / wall_detector), Nav2 smac hybrid 등 다중 자율주행 스택을 다룬다.
 
-## 시스템 환경
+## 참조 자료 규칙
 
-- 개발 PC: Intel Alder Lake-P iGPU + NVIDIA RTX 3080 Mobile (PRIME Optimus 랩톱)
-- 64GB RAM, 20 CPU cores
-- 배포 PC는 다른 GPU 구성일 수 있음 (순수 NVIDIA 데스크톱, 헤드리스 등)
+현재 외부 벤더 매뉴얼 의존 없음. 추가 시 [docs/claude_guideline/manual.md](docs/claude_guideline/manual.md) 절차를 따른다.
 
-## GPU 자동 선택 패턴 (배포 안전)
+## 문서 작업 규칙 (먼저 읽기)
 
-GUI launch 파일(Gazebo, RViz2, rqt 포함)은 **auto-detect + override** 패턴을 사용한다.
-참조 구현: `src/Gazebo/launch/gazebo.launch.py` 의 `_detect_gpu_mode()` / `_setup_gpu_env()`.
+작업 영역에 따라 **시작 전 반드시** 해당 SSOT 를 먼저 읽고 규칙을 따른다. 규칙은 각 파일이 단일 근원(SSOT) 이며 본 CLAUDE.md 에 복제하지 않는다.
 
-- `gpu:=auto` (기본) — `xrandr --listproviders` 결과로 환경 자동 분기
-  - Optimus(Intel+NVIDIA) → PRIME offload 환경변수 4종 자동 주입
-  - 순수 NVIDIA 데스크톱 → 환경변수 불필요 (no-op)
-  - DISPLAY 없음 → no-op
-- `gpu:=nvidia_offload` — 강제 PRIME offload
-- `gpu:=native` — 강제 비활성화 (디버깅, 헤드리스 SIL)
+### Claude 작업 지침 (메타 규칙)
 
-새 GUI launch 파일 작성 시 같은 헬퍼 함수와 `DeclareLaunchArgument('gpu', default='auto') + OpaqueFunction(_setup_gpu_env)` 패턴을 복사한다.
+- 진입점 → [docs/claude_guideline/README.md](docs/claude_guideline/README.md)
+  - CLAUDE.md 작성 가이드 → [claude_md.md](docs/claude_guideline/claude_md.md)
+  - 사용자 지시사항 처리 SOP → [user_instruction_handling_sop.md](docs/claude_guideline/user_instruction_handling_sop.md)
+  - ROS2 / 임베디드 작업 규칙 → [ros2.md](docs/claude_guideline/ros2.md)
+  - 작업 절차 체크리스트 → [workflow.md](docs/claude_guideline/workflow.md)
+  - 코드 작업 규칙 → [coding.md](docs/claude_guideline/coding.md)
+  - GitHub 워크플로 → [github.md](docs/claude_guideline/github.md)
+  - 기술 부채 방지 → [tech_debt.md](docs/claude_guideline/tech_debt.md)
+  - Iteration 반복 수정 방지 → [iteration_anti_pattern.md](docs/claude_guideline/iteration_anti_pattern.md)
+  - 매뉴얼 / 데이터시트 보관·인용 → [manual.md](docs/claude_guideline/manual.md)
+  - 스킬 / 자동화 자산 SSOT 등록 → [skill_update.md](docs/claude_guideline/skill_update.md)
+  - 문서 작성 방법 → [documentation.md](docs/claude_guideline/documentation.md)
+  - 프로젝트별 비공개 override → [docs/claude_guideline/local/](docs/claude_guideline/local/)
 
-## 유틸리티
+### 도메인 문서
 
-- ROS2 전체 종료: `~/Study/ros2_3dslam_ws/scripts/kill_all_ros2.sh`
+- 진입점 → [docs/README.md](docs/README.md)
+
+## 모듈 CLAUDE.md (override 계층)
+
+현재 모듈 CLAUDE.md 없음. 추가 시 본 절에 등록하며 충돌 시 모듈 규칙이 루트보다 우선한다.
+
+## 도메인 문서 SSOT
+
+| 영역 | SSOT |
+| --- | --- |
+| 프로젝트 운영 규칙 (직접 실행 원칙, 구조·환경 요약) | [docs/claude_guideline/local/project_rules.md](docs/claude_guideline/local/project_rules.md) |
+| GPU 자동 선택 (`launch_utils.setup_gpu_offload`) | [docs/architecture/gpu_offload.md](docs/architecture/gpu_offload.md) |
+| 실험 실행 절차 (`kill_all_ros2.sh`, pkill 가이드) | [docs/usage/experiment_execution.md](docs/usage/experiment_execution.md) |
+| 캡처 · 테스트 증거 수집 | [docs/test/capture_test.md](docs/test/capture_test.md) |
+
+규칙 변경이 필요하면 해당 SSOT 수정 여부를 먼저 사용자에게 문의한다.
