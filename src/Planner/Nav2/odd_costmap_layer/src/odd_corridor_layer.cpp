@@ -1,5 +1,6 @@
 #include "odd_costmap_layer/odd_corridor_layer.hpp"
 #include <pluginlib/class_list_macros.hpp>
+#include <algorithm>
 
 namespace odd_costmap_layer
 {
@@ -43,8 +44,25 @@ void OddCorridorLayer::onInitialize() {
 }
 
 void OddCorridorLayer::updateBounds(
-  double, double, double,
-  double *, double *, double *, double *) {}
+  double /*robot_x*/, double /*robot_y*/, double /*robot_yaw*/,
+  double * min_x, double * min_y, double * max_x, double * max_y)
+{
+  if (!enabled_) return;
+
+  std::lock_guard<std::mutex> lock(mask_mutex_);
+  if (!cached_mask_) return;
+
+  const auto & info = cached_mask_->info;
+  const double origin_x = info.origin.position.x;
+  const double origin_y = info.origin.position.y;
+  const double width_m  = info.width  * info.resolution;
+  const double height_m = info.height * info.resolution;
+
+  *min_x = std::min(*min_x, origin_x);
+  *min_y = std::min(*min_y, origin_y);
+  *max_x = std::max(*max_x, origin_x + width_m);
+  *max_y = std::max(*max_y, origin_y + height_m);
+}
 
 void OddCorridorLayer::updateCosts(
   nav2_costmap_2d::Costmap2D &,
