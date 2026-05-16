@@ -50,7 +50,7 @@ def generate_launch_description():
     autostart = LaunchConfiguration('autostart')
     params_file = LaunchConfiguration('params_file')
     database_path = LaunchConfiguration('database_path')
-    rviz = LaunchConfiguration('rviz')
+    bringup_rviz = LaunchConfiguration('bringup_rviz')
     rviz_config = LaunchConfiguration('rviz_config')
 
     return LaunchDescription([
@@ -59,20 +59,22 @@ def generate_launch_description():
         DeclareLaunchArgument('autostart', default_value='true'),
         DeclareLaunchArgument('params_file', default_value=default_params),
         DeclareLaunchArgument('database_path', default_value=default_db),
-        DeclareLaunchArgument('rviz', default_value='true'),
+        DeclareLaunchArgument(
+            'bringup_rviz', default_value='true',
+            description='Launch the Nav2 RViz (nav2.rviz). Renamed from "rviz" to avoid collision with the rviz argument forwarded to gazebo.launch.py.'),
         DeclareLaunchArgument('rviz_config', default_value=default_rviz),
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(pkg_gazebo, 'launch', 'gazebo.launch.py')
             ),
-            launch_arguments={'odom_tf': 'false'}.items(),
+            launch_arguments={'odom_tf': 'false', 'rviz': 'false'}.items(),
         ),
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(
-                    pkg_rtabmap, 'launch', 'localization',
+                    pkg_rtabmap, 'localization',
                     'rtabmap_3dlidar_only_localization_gazebo.launch.py',
                 )
             ),
@@ -115,6 +117,6 @@ def generate_launch_description():
             arguments=['-d', rviz_config],
             parameters=[{'use_sim_time': use_sim_time}],
             output='screen',
-            condition=IfCondition(rviz),
+            condition=IfCondition(bringup_rviz),
         ),
     ])
