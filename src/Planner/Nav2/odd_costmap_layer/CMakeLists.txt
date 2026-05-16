@@ -37,8 +37,13 @@ install(TARGETS ${PROJECT_NAME}
 install(DIRECTORY include/ DESTINATION include)
 install(FILES odd_costmap_layer_plugin.xml DESTINATION share/${PROJECT_NAME})
 
-# Tests are wired in Phase 3 (Task 5+). BUILD_TESTING block intentionally
-# omitted for now; will be re-added when test_odd_corridor_layer.cpp lands.
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_odd_corridor_layer test/test_odd_corridor_layer.cpp)
+  target_link_libraries(test_odd_corridor_layer ${PROJECT_NAME})
+  target_include_directories(test_odd_corridor_layer PRIVATE include)
+  ament_target_dependencies(test_odd_corridor_layer ${deps})
+endif()
 
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
