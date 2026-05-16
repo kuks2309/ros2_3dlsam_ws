@@ -17,6 +17,12 @@
   <exec_depend>rtab_map_3d_config</exec_depend>
   <exec_depend>rviz2</exec_depend>
   <exec_depend>nav2_rviz_plugins</exec_depend>
+  <exec_depend>launch_utils</exec_depend>
+  <exec_depend>local_odd_generator</exec_depend>
+  <exec_depend>local_odd_obstacle_detector</exec_depend>
+  <exec_depend>local_odd_costmap_generator</exec_depend>
+  <exec_depend>corridor_aware_controller</exec_depend>
+  <exec_depend>odd_costmap_layer</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
