@@ -65,8 +65,53 @@ void OddCorridorLayer::updateBounds(
 }
 
 void OddCorridorLayer::updateCosts(
-  nav2_costmap_2d::Costmap2D &,
-  int, int, int, int) {}
+  nav2_costmap_2d::Costmap2D & master_grid,
+  int min_i, int min_j, int max_i, int max_j)
+{
+  if (!enabled_) return;
+
+  std::lock_guard<std::mutex> lock(mask_mutex_);
+  if (!cached_mask_) return;
+
+  const auto & info = cached_mask_->info;
+  const double mask_origin_x = info.origin.position.x;
+  const double mask_origin_y = info.origin.position.y;
+  const double mask_res      = info.resolution;
+  const uint32_t mask_w = info.width;
+  const uint32_t mask_h = info.height;
+  if (mask_res <= 0.0 || mask_w == 0 || mask_h == 0) return;
+
+  for (int j = min_j; j < max_j; ++j) {
+    for (int i = min_i; i < max_i; ++i) {
+      double wx = 0.0, wy = 0.0;
+      master_grid.mapToWorld(i, j, wx, wy);
+
+      const double rel_x = wx - mask_origin_x;
+      const double rel_y = wy - mask_origin_y;
+      if (rel_x < 0.0 || rel_y < 0.0) continue;
+
+      const uint32_t mi = static_cast<uint32_t>(rel_x / mask_res);
+      const uint32_t mj = static_cast<uint32_t>(rel_y / mask_res);
+      if (mi >= mask_w || mj >= mask_h) continue;
+
+      const int8_t v = cached_mask_->data[mj * mask_w + mi];
+      uint8_t cost = nav2_costmap_2d::NO_INFORMATION;
+      if (v == 0) {
+        cost = nav2_costmap_2d::FREE_SPACE;
+      } else if (v == -1) {
+        switch (unknown_treatment_) {
+          case UnknownTreatment::FREE:   cost = nav2_costmap_2d::FREE_SPACE; break;
+          case UnknownTreatment::NOINFO: cost = nav2_costmap_2d::NO_INFORMATION; break;
+          case UnknownTreatment::LETHAL:
+          default:                       cost = nav2_costmap_2d::LETHAL_OBSTACLE; break;
+        }
+      } else {
+        cost = nav2_costmap_2d::LETHAL_OBSTACLE;
+      }
+      master_grid.setCost(i, j, cost);
+    }
+  }
+}
 
 void OddCorridorLayer::reset() {
   std::lock_guard<std::mutex> lock(mask_mutex_);
