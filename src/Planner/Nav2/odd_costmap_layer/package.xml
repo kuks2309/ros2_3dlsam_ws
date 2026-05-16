@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>odd_costmap_layer</name>
+  <version>0.1.0</version>
+  <description>Nav2 costmap_2d Layer plugin that consumes /odd_local_costmap (corridor mask) and writes onto the local_costmap master grid. Replaces voxel_layer when the ODD pipeline is the obstacle source of truth.</description>
+  <maintainer email="tc@todo.todo">tc</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>nav_msgs</depend>
+  <depend>nav2_costmap_2d</depend>
+  <depend>nav2_util</depend>
+  <depend>pluginlib</depend>
+  <depend>tf2_ros</depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+
+  <export>
+    <nav2_costmap_2d plugin="${prefix}/odd_costmap_layer_plugin.xml" />
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

@@ -1,0 +1,13 @@
+<class_libraries>
+  <library path="odd_costmap_layer">
+    <class type="odd_costmap_layer::OddCorridorLayer"
+           base_class_type="nav2_costmap_2d::Layer">
+      <description>
+        Subscribes /odd_local_costmap (corridor mask OccupancyGrid) and writes
+        the mask onto the parent local_costmap. Non-corridor cells default to
+        LETHAL_OBSTACLE; unknown_treatment param controls behavior on unknown
+        cells (lethal/free/noinfo).
+      </description>
+    </class>
+  </library>
+</class_libraries>
